@@ -1,62 +1,110 @@
-import { useState } from 'react';
-import { ChevronLeft, Send } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { X, Send } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
+import { useRealtimeChat } from '@/hooks/useRealtimeChat';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 const ChatModal = () => {
-  const [msg, setMsg] = useState("");
-  const [msgs, setMsgs] = useState([
-    { from: 'them', text: `Olá! Vi que temos filhos com a mesma idade.` },
-  ]);
-  const { chatUser, setActiveModal, setChatUser } = useAppStore();
+  const { setActiveModal, chatUser } = useAppStore();
+  const [message, setMessage] = useState('');
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { messages, loading, sending, sendMessage } = useRealtimeChat(chatUser);
 
-  if (!chatUser) return null;
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setCurrentUserId(data.user?.id || null);
+    });
+  }, []);
 
-  const send = () => {
-    if (!msg) return;
-    setMsgs([...msgs, { from: 'me', text: msg }]);
-    setMsg("");
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!message.trim()) return;
+
+    await sendMessage(message);
+    setMessage('');
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-card flex flex-col animate-slide-in-from-right">
-      <div className="p-4 bg-primary text-primary-foreground flex items-center gap-3 shadow-md">
-        <button
-          onClick={() => {
-            setActiveModal(null);
-            setChatUser(null);
-          }}
-        >
-          <ChevronLeft />
-        </button>
-        <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center font-bold">
-          {chatUser?.name.charAt(0)}
-        </div>
-        <h3 className="font-bold text-sm">{chatUser?.name}</h3>
-      </div>
-      <div className="flex-1 bg-muted p-4 space-y-4 overflow-y-auto">
-        {msgs.map((m, i) => (
-          <div key={i} className={`flex ${m.from === 'me' ? 'justify-end' : 'justify-start'}`}>
-            <div
-              className={`max-w-[80%] p-3 rounded-2xl text-sm ${
-                m.from === 'me' ? 'bg-primary text-primary-foreground' : 'bg-card border border-border'
-              }`}
-            >
-              {m.text}
-            </div>
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-4 animate-slide-in-from-bottom">
+      <div className="bg-card w-full max-w-md rounded-2xl flex flex-col h-[600px]">
+        {/* Header */}
+        <div className="flex justify-between items-center p-4 border-b border-border">
+          <div>
+            <h3 className="font-bold text-lg text-foreground">Chat</h3>
+            <p className="text-xs text-muted-foreground">Conversa com mãe da comunidade</p>
           </div>
-        ))}
-      </div>
-      <div className="p-3 border-t bg-card flex gap-2">
-        <input
-          value={msg}
-          onChange={(e) => setMsg(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && send()}
-          placeholder="Digite..."
-          className="flex-1 bg-muted rounded-full px-4 py-2 outline-none"
-        />
-        <button onClick={send} className="bg-primary text-primary-foreground p-2 rounded-full">
-          <Send size={18} />
-        </button>
+          <button onClick={() => setActiveModal(null)}>
+            <X />
+          </button>
+        </div>
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {loading ? (
+            <div className="flex justify-center py-8">
+              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : messages.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <p className="text-sm">Nenhuma mensagem ainda.</p>
+              <p className="text-xs mt-1">Envie a primeira mensagem!</p>
+            </div>
+          ) : (
+            messages.map((msg) => {
+              const isOwn = msg.sender_id === currentUserId;
+              return (
+                <div
+                  key={msg.id}
+                  className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-[70%] p-3 rounded-2xl ${
+                      isOwn
+                        ? 'bg-primary text-primary-foreground rounded-br-none'
+                        : 'bg-muted text-foreground rounded-bl-none'
+                    }`}
+                  >
+                    {!isOwn && (
+                      <p className="text-xs opacity-70 mb-1">
+                        {msg.profiles?.display_name || 'Usuário'}
+                      </p>
+                    )}
+                    <p className="text-sm">{msg.message}</p>
+                    <p className="text-xs opacity-60 mt-1">
+                      {new Date(msg.created_at).toLocaleTimeString('pt-BR', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                </div>
+              );
+            })
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input */}
+        <form onSubmit={handleSendMessage} className="p-4 border-t border-border">
+          <div className="flex gap-2">
+            <Input
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Digite sua mensagem..."
+              disabled={sending}
+            />
+            <Button type="submit" disabled={sending || !message.trim()}>
+              <Send size={16} />
+            </Button>
+          </div>
+        </form>
       </div>
     </div>
   );
