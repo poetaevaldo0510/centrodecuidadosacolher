@@ -137,10 +137,10 @@ const Landing = () => {
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link
-                  to="/app"
+                  to="/auth"
                   className="bg-primary text-primary-foreground px-8 py-4 rounded-full font-bold text-lg shadow-xl hover:-translate-y-1 transition flex items-center justify-center gap-2"
                 >
-                  <Smartphone size={20} /> Acessar Agora
+                  <Smartphone size={20} /> Começar Agora
                 </Link>
                 <button className="bg-card text-primary border border-border px-8 py-4 rounded-full font-bold text-lg hover:bg-muted transition flex items-center justify-center gap-2">
                   Ver como funciona

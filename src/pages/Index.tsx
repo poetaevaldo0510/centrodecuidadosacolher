@@ -9,11 +9,24 @@ import ExploreMap from '@/components/ExploreMap';
 import ProfileView from '@/components/ProfileView';
 import ModalsContainer from '@/components/ModalsContainer';
 import { useAppStore } from '@/lib/store';
+import { useAuth } from '@/hooks/useAuth';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('home');
   const [showWelcome, setShowWelcome] = useState(true);
   const { activeModal } = useAppStore();
+  const { loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     const timer = setTimeout(() => setShowWelcome(false), 2500);
