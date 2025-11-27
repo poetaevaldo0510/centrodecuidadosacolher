@@ -1,22 +1,41 @@
 import { useState, useEffect } from 'react';
-import { User, CheckCircle, BookHeart, Edit3, Info, Brain, File, Lock, Smile, Sun, Moon, CloudRain, LogOut } from 'lucide-react';
+import { User, CheckCircle, BookHeart, Edit3, Info, Brain, File, Lock, Smile, Sun, Moon, CloudRain, LogOut, Award, Flame } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import ExportData from './ExportData';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 const ProfileView = () => {
   const { setActiveModal, triggerReward } = useAppStore();
   const { user, signOut } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const {
+    permission,
+    isSupported,
+    requestPermission,
+    subscribeToNewMessages,
+    subscribeToMarketplaceActivity,
+  } = usePushNotifications();
 
   useEffect(() => {
     if (user) {
       loadProfile();
     }
-  }, [user]);
+
+    // Subscribe to notifications if permission is granted
+    if (permission === 'granted' && user) {
+      const unsubMessages = subscribeToNewMessages(user.id);
+      const unsubMarket = subscribeToMarketplaceActivity();
+      return () => {
+        unsubMessages();
+        unsubMarket();
+      };
+    }
+  }, [user, permission]);
 
   const loadProfile = async () => {
     try {
@@ -94,6 +113,52 @@ const ProfileView = () => {
       </div>
 
       <div className="p-6 space-y-6 flex-1 overflow-y-auto">
+        {/* Push Notifications */}
+        {isSupported && (
+          <div className="bg-card p-4 rounded-2xl shadow-sm border border-border">
+            <h3 className="font-bold text-foreground mb-3">Notificações Push</h3>
+            {permission === 'granted' ? (
+              <div className="bg-success/10 p-3 rounded-xl border border-success/20">
+                <p className="text-sm text-success font-bold">✓ Ativadas</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Você receberá notificações sobre mensagens e novos produtos
+                </p>
+              </div>
+            ) : permission === 'denied' ? (
+              <div className="bg-destructive/10 p-3 rounded-xl border border-destructive/20">
+                <p className="text-sm text-destructive font-bold">✗ Bloqueadas</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Ative nas configurações do navegador
+                </p>
+              </div>
+            ) : (
+              <button
+                onClick={requestPermission}
+                className="w-full bg-primary text-primary-foreground py-2 px-4 rounded-xl text-sm font-bold hover:bg-primary/90"
+              >
+                Ativar Notificações
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Export Data */}
+        <ExportData />
+
+        {/* Achievements Card */}
+        <div className="bg-card p-4 rounded-2xl shadow-sm border border-border space-y-3">
+          <h3 className="font-bold text-foreground flex items-center gap-2">
+            <Award className="text-warning" size={18} /> Conquistas
+          </h3>
+          <div className="flex items-center justify-between p-3 bg-gradient-to-r from-warning/10 to-success/10 rounded-xl">
+            <div>
+              <p className="text-sm font-bold text-foreground">Mãe Constante</p>
+              <p className="text-xs text-muted-foreground">7 dias seguidos</p>
+            </div>
+            <Flame className="text-warning" size={24} />
+          </div>
+        </div>
+
         {/* Diário */}
         <div>
           <h3 className="font-bold text-foreground mb-3 ml-1 flex items-center gap-2">
