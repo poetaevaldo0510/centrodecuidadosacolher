@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, MessageCircle } from 'lucide-react';
+import { Users, MessageCircle, Search } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -12,7 +12,9 @@ interface Profile {
 const CommunityHub = () => {
   const { setActiveModal, setChatUser } = useAppStore();
   const [suggestedMoms, setSuggestedMoms] = useState<Profile[]>([]);
+  const [filteredMoms, setFilteredMoms] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchSuggestedMoms();
@@ -25,17 +27,29 @@ const CommunityHub = () => {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .neq('id', user?.id || '')
-        .limit(5);
+        .neq('id', user?.id || '');
 
       if (error) throw error;
       setSuggestedMoms(data || []);
+      setFilteredMoms(data || []);
     } catch (error) {
       console.error('Error fetching profiles:', error);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      const filtered = suggestedMoms.filter((mom) =>
+        mom.display_name?.toLowerCase().includes(query)
+      );
+      setFilteredMoms(filtered);
+    } else {
+      setFilteredMoms(suggestedMoms);
+    }
+  }, [searchQuery, suggestedMoms]);
 
   const handleStartChat = (userId: string) => {
     setChatUser(userId);
@@ -73,18 +87,34 @@ const CommunityHub = () => {
         <div>
           <h3 className="font-bold text-foreground mb-3">Conecte-se com Mães</h3>
           
+          {/* Search */}
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+            <input
+              type="text"
+              placeholder="Buscar mães..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-card border border-border rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+          
           {loading ? (
             <div className="text-center py-8">
               <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
             </div>
-          ) : suggestedMoms.length === 0 ? (
+          ) : filteredMoms.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">Nenhuma mãe disponível ainda.</p>
+              <p className="text-sm">
+                {searchQuery
+                  ? 'Nenhuma mãe encontrada com esse nome.'
+                  : 'Nenhuma mãe disponível ainda.'}
+              </p>
             </div>
           ) : (
             <div className="space-y-3">
-              {suggestedMoms.map((mom) => (
+              {filteredMoms.map((mom) => (
                 <div
                   key={mom.id}
                   className="bg-card p-4 rounded-2xl shadow-sm border border-border flex gap-4 items-center"

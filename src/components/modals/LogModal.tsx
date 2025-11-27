@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { X, CheckCircle, Clock } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const LogModal = () => {
   const [noteInput, setNoteInput] = useState("");
@@ -8,19 +10,41 @@ const LogModal = () => {
 
   if (!selectedAction) return null;
 
-  const handleSave = () => {
-    const newLog = {
-      id: Date.now(),
-      action: selectedAction.label,
-      type: selectedAction.type,
-      note: noteInput,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      date: new Date().toLocaleDateString(),
-    };
-    addLog(newLog);
-    triggerReward(`${selectedAction.label} registrado!`, 15);
-    setActiveModal(null);
-    setNoteInput("");
+  const handleSave = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Você precisa estar logado');
+        return;
+      }
+
+      const { error } = await supabase.from('logs').insert({
+        user_id: user.id,
+        title: selectedAction.label,
+        type: selectedAction.type,
+        description: noteInput || null,
+        date: new Date().toISOString(),
+      });
+
+      if (error) throw error;
+
+      // Also add to local state for immediate UI update
+      const newLog = {
+        id: Date.now(),
+        action: selectedAction.label,
+        type: selectedAction.type,
+        note: noteInput,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        date: new Date().toLocaleDateString(),
+      };
+      addLog(newLog);
+      
+      triggerReward(`${selectedAction.label} registrado!`, 15);
+      setActiveModal(null);
+      setNoteInput("");
+    } catch (error: any) {
+      toast.error('Erro ao salvar registro');
+    }
   };
 
   const Icon = selectedAction.icon;
