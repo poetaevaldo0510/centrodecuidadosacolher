@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      calendar_events: {
+        Row: {
+          completed: boolean | null
+          created_at: string
+          description: string | null
+          end_time: string | null
+          event_type: string
+          id: string
+          location: string | null
+          recurrence: string | null
+          remind_before_minutes: number | null
+          start_time: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean | null
+          created_at?: string
+          description?: string | null
+          end_time?: string | null
+          event_type: string
+          id?: string
+          location?: string | null
+          recurrence?: string | null
+          remind_before_minutes?: number | null
+          start_time: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean | null
+          created_at?: string
+          description?: string | null
+          end_time?: string | null
+          event_type?: string
+          id?: string
+          location?: string | null
+          recurrence?: string | null
+          remind_before_minutes?: number | null
+          start_time?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           created_at: string
@@ -159,6 +207,87 @@ export type Database = {
           display_name?: string | null
           id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      progress_photos: {
+        Row: {
+          caption: string | null
+          child_name: string | null
+          comparison_pair_id: string | null
+          created_at: string
+          date_taken: string
+          id: string
+          is_before: boolean | null
+          milestone_type: string | null
+          photo_url: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          caption?: string | null
+          child_name?: string | null
+          comparison_pair_id?: string | null
+          created_at?: string
+          date_taken?: string
+          id?: string
+          is_before?: boolean | null
+          milestone_type?: string | null
+          photo_url: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          caption?: string | null
+          child_name?: string | null
+          comparison_pair_id?: string | null
+          created_at?: string
+          date_taken?: string
+          id?: string
+          is_before?: boolean | null
+          milestone_type?: string | null
+          photo_url?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      resources: {
+        Row: {
+          category: string
+          content: string | null
+          created_at: string
+          description: string | null
+          id: string
+          thumbnail_url: string | null
+          title: string
+          type: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          category: string
+          content?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          thumbnail_url?: string | null
+          title: string
+          type: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          category?: string
+          content?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          thumbnail_url?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+          url?: string | null
         }
         Relationships: []
       }

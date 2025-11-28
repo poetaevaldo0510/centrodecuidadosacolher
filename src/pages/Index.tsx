@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Home, Users, Map, ShoppingBag, User } from 'lucide-react';
+import { Home, MessageCircle, Map, ShoppingBag, User, BookOpen, Camera, Calendar as CalendarIcon } from 'lucide-react';
 import WelcomeScreen from '@/components/WelcomeScreen';
 import RewardToast from '@/components/RewardToast';
 import SmartHome from '@/components/SmartHome';
@@ -7,6 +7,9 @@ import CommunityHub from '@/components/CommunityHub';
 import MarketHub from '@/components/MarketHub';
 import ExploreMap from '@/components/ExploreMap';
 import ProfileView from '@/components/ProfileView';
+import ResourcesLibrary from '@/components/ResourcesLibrary';
+import PhotoGallery from '@/components/PhotoGallery';
+import Calendar from '@/components/Calendar';
 import ModalsContainer from '@/components/ModalsContainer';
 import { useAppStore } from '@/lib/store';
 import { useAuth } from '@/hooks/useAuth';
@@ -35,7 +38,10 @@ const Index = () => {
 
   const navItems = [
     { id: 'home', icon: Home, label: 'Início' },
-    { id: 'community', icon: Users, label: 'Tribo' },
+    { id: 'resources', icon: BookOpen, label: 'Recursos' },
+    { id: 'gallery', icon: Camera, label: 'Galeria' },
+    { id: 'calendar', icon: CalendarIcon, label: 'Agenda' },
+    { id: 'community', icon: MessageCircle, label: 'Tribo' },
     { id: 'explore', icon: Map, label: 'Explorar' },
     { id: 'market', icon: ShoppingBag, label: 'Mercado' },
     { id: 'profile', icon: User, label: 'Perfil' },
@@ -49,6 +55,9 @@ const Index = () => {
       
       <div className="flex-1 overflow-y-auto">
         {activeTab === 'home' && <SmartHome />}
+        {activeTab === 'resources' && <ResourcesLibrary />}
+        {activeTab === 'gallery' && <PhotoGallery />}
+        {activeTab === 'calendar' && <Calendar />}
         {activeTab === 'community' && <CommunityHub />}
         {activeTab === 'explore' && <ExploreMap />}
         {activeTab === 'market' && <MarketHub />}
