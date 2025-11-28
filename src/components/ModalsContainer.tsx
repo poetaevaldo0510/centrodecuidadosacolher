@@ -8,6 +8,8 @@ import ReportModal from './modals/ReportModal';
 import SellModal from './modals/SellModal';
 import SOSModal from './modals/SOSModal';
 import ChatModal from './modals/ChatModal';
+import UploadPhotoModal from './modals/UploadPhotoModal';
+import AddEventModal from './modals/AddEventModal';
 import { useAppStore } from '@/lib/store';
 
 const ModalsContainer = () => {
@@ -25,6 +27,8 @@ const ModalsContainer = () => {
       {activeModal === 'sell' && <SellModal />}
       {activeModal === 'sos' && <SOSModal />}
       {activeModal === 'chat' && <ChatModal />}
+      {activeModal === 'uploadPhoto' && <UploadPhotoModal />}
+      {activeModal === 'addEvent' && <AddEventModal />}
     </>
   );
 };
