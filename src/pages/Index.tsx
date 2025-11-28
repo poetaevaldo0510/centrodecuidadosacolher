@@ -20,6 +20,11 @@ const Index = () => {
   const { activeModal } = useAppStore();
   const { loading } = useAuth();
 
+  useEffect(() => {
+    const timer = setTimeout(() => setShowWelcome(false), 2500);
+    return () => clearTimeout(timer);
+  }, []);
+
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center bg-background">
@@ -30,11 +35,6 @@ const Index = () => {
       </div>
     );
   }
-
-  useEffect(() => {
-    const timer = setTimeout(() => setShowWelcome(false), 2500);
-    return () => clearTimeout(timer);
-  }, []);
 
   const navItems = [
     { id: 'home', icon: Home, label: 'Início' },
