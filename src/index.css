@@ -80,5 +80,30 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Mobile optimizations */
+  @supports (-webkit-touch-callout: none) {
+    /* iOS specific fixes */
+    body {
+      min-height: -webkit-fill-available;
+    }
+  }
+
+  /* Improve touch targets for mobile */
+  button, a, input, select, textarea {
+    touch-action: manipulation;
+  }
+
+  /* Prevent zoom on input focus in iOS */
+  input, select, textarea {
+    font-size: 16px;
+  }
+
+  /* Smooth scrolling on mobile */
+  * {
+    -webkit-overflow-scrolling: touch;
   }
 }
