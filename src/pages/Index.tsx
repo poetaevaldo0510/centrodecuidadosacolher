@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Home, MessageCircle, Map, ShoppingBag, User, BookOpen, Camera, Calendar as CalendarIcon } from 'lucide-react';
 import WelcomeScreen from '@/components/WelcomeScreen';
+import OnboardingTutorial from '@/components/OnboardingTutorial';
 import RewardToast from '@/components/RewardToast';
 import SmartHome from '@/components/SmartHome';
 import CommunityHub from '@/components/CommunityHub';
@@ -13,17 +14,44 @@ import Calendar from '@/components/Calendar';
 import ModalsContainer from '@/components/ModalsContainer';
 import { useAppStore } from '@/lib/store';
 import { useAuth } from '@/hooks/useAuth';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('home');
   const [showWelcome, setShowWelcome] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const { activeModal } = useAppStore();
-  const { loading } = useAuth();
+  const { loading, user } = useAuth();
+  const { requestPermission, subscribeToNewMessages, subscribeToMarketplaceActivity } = usePushNotifications();
 
   useEffect(() => {
-    const timer = setTimeout(() => setShowWelcome(false), 2500);
+    const timer = setTimeout(() => {
+      setShowWelcome(false);
+      // Check if user has completed onboarding
+      const hasCompletedOnboarding = localStorage.getItem('onboarding_completed');
+      if (!hasCompletedOnboarding) {
+        setShowOnboarding(true);
+      }
+    }, 2500);
     return () => clearTimeout(timer);
   }, []);
+
+  // Setup push notifications when user is logged in
+  useEffect(() => {
+    if (user) {
+      // Request notification permission
+      requestPermission();
+      
+      // Subscribe to real-time notifications
+      const unsubscribeMessages = subscribeToNewMessages(user.id);
+      const unsubscribeMarket = subscribeToMarketplaceActivity();
+
+      return () => {
+        unsubscribeMessages();
+        unsubscribeMarket();
+      };
+    }
+  }, [user]);
 
   if (loading) {
     return (
@@ -50,6 +78,9 @@ const Index = () => {
   return (
     <div className="h-screen bg-background flex flex-col font-sans max-w-md mx-auto shadow-2xl overflow-hidden relative border-x border-border">
       <WelcomeScreen show={showWelcome} />
+      {showOnboarding && (
+        <OnboardingTutorial onComplete={() => setShowOnboarding(false)} />
+      )}
       <RewardToast />
       <ModalsContainer />
       

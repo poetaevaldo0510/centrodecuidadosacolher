@@ -41,6 +41,8 @@ export const usePushNotifications = () => {
   };
 
   const subscribeToNewMessages = (userId: string) => {
+    if (permission !== 'granted') return () => {};
+
     const channel = supabase
       .channel('new-messages')
       .on(
@@ -73,6 +75,8 @@ export const usePushNotifications = () => {
   };
 
   const subscribeToMarketplaceActivity = () => {
+    if (permission !== 'granted') return () => {};
+
     const channel = supabase
       .channel('marketplace-activity')
       .on(
@@ -102,6 +106,51 @@ export const usePushNotifications = () => {
     };
   };
 
+  const subscribeToCalendarReminders = (userId: string) => {
+    if (permission !== 'granted') return () => {};
+
+    const channel = supabase
+      .channel('calendar-reminders')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'calendar_events',
+          filter: `user_id=eq.${userId}`,
+        },
+        async (payload) => {
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            const event = payload.new;
+            
+            // Check if event needs a reminder
+            if (event.remind_before_minutes > 0 && !event.completed) {
+              const eventTime = new Date(event.start_time);
+              const reminderTime = new Date(eventTime.getTime() - event.remind_before_minutes * 60000);
+              const now = new Date();
+              
+              // If reminder time is in the future but close, schedule notification
+              const timeDiff = reminderTime.getTime() - now.getTime();
+              if (timeDiff > 0 && timeDiff < 24 * 60 * 60 * 1000) { // Within 24 hours
+                setTimeout(() => {
+                  sendNotification(`Lembrete: ${event.title}`, {
+                    body: `Em ${event.remind_before_minutes} minutos - ${event.event_type === 'medication' ? 'Medicação' : event.event_type === 'appointment' ? 'Consulta' : 'Terapia'}`,
+                    tag: `reminder-${event.id}`,
+                    requireInteraction: true,
+                  });
+                }, timeDiff);
+              }
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  };
+
   return {
     permission,
     isSupported,
@@ -109,5 +158,6 @@ export const usePushNotifications = () => {
     sendNotification,
     subscribeToNewMessages,
     subscribeToMarketplaceActivity,
+    subscribeToCalendarReminders,
   };
 };

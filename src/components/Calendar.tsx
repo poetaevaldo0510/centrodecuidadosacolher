@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Calendar as CalendarIcon, Plus, Bell, MapPin, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
@@ -31,11 +32,16 @@ const CalendarComponent = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const setActiveModal = useAppStore(state => state.setActiveModal);
+  const { subscribeToCalendarReminders } = usePushNotifications();
 
   useEffect(() => {
     if (user) {
       fetchEvents();
       setupEventReminders();
+      
+      // Subscribe to calendar reminders via push notifications
+      const unsubscribe = subscribeToCalendarReminders(user.id);
+      return () => unsubscribe();
     }
   }, [user]);
 
