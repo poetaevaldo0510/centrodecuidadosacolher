@@ -42,6 +42,9 @@ interface AppState {
   
   // App data
   points: number;
+  streak: number; // Days in a row using the app
+  dailyGoal: number; // Daily actions goal
+  completedToday: number; // Actions completed today
   logs: Log[];
   marketplaceItems: MarketItem[];
   userRoutine: UserRoutine;
@@ -60,6 +63,8 @@ interface AppState {
   setUserData: (data: Partial<AppState>) => void;
   addPoints: (pts: number) => void;
   triggerReward: (message: string, pts: number) => void;
+  incrementCompletedToday: () => void;
+  checkStreak: () => void;
   addLog: (log: Log) => void;
   addMarketItem: (item: MarketItem) => void;
   setActiveModal: (modal: string | null) => void;
@@ -86,6 +91,9 @@ export const useAppStore = create<AppState>()(
       childBirthDate: "2018-05-20",
       childMeds: "Risperidona 1mg, Melatonina",
       points: 1350,
+      streak: 7,
+      dailyGoal: 5,
+      completedToday: 0,
       logs: [],
       marketplaceItems: [
         { id: 1, title: "Kit Rotina Visual", price: "R$ 45,00", author: "Mãe Joana", category: "Material", sales: 42, imageColor: "bg-orange-100" },
@@ -116,6 +124,57 @@ export const useAppStore = create<AppState>()(
           points: state.points + pts,
           showReward: { message, points: pts }
         };
+      }),
+
+      incrementCompletedToday: () => set((state) => {
+        const newCompleted = state.completedToday + 1;
+        let bonus = 0;
+        let bonusMessage = '';
+
+        // Check if daily goal is reached
+        if (newCompleted === state.dailyGoal) {
+          bonus = 50;
+          bonusMessage = '🎯 Meta diária atingida!';
+          setTimeout(() => {
+            useAppStore.getState().triggerReward(bonusMessage, bonus);
+          }, 500);
+        }
+
+        return { 
+          completedToday: newCompleted,
+          points: state.points + bonus
+        };
+      }),
+
+      checkStreak: () => set((state) => {
+        const lastCheck = localStorage.getItem('last_streak_check');
+        const today = new Date().toDateString();
+        
+        if (lastCheck !== today) {
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          const yesterdayStr = yesterday.toDateString();
+          
+          let newStreak = state.streak;
+          
+          if (lastCheck === yesterdayStr) {
+            // Consecutive day
+            newStreak = state.streak + 1;
+          } else if (lastCheck && lastCheck !== yesterdayStr) {
+            // Streak broken
+            newStreak = 1;
+          }
+          
+          localStorage.setItem('last_streak_check', today);
+          localStorage.setItem('last_action_date', today);
+          
+          return { 
+            streak: newStreak,
+            completedToday: 0 // Reset daily counter
+          };
+        }
+        
+        return state;
       }),
       
       addLog: (log) => set((state) => ({

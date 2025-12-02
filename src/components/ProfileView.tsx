@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
-import { User, CheckCircle, BookHeart, Edit3, Info, Brain, File, Lock, Smile, Sun, Moon, CloudRain, LogOut, Award, Flame } from 'lucide-react';
+import { User, CheckCircle, BookHeart, Edit3, Info, Brain, File, Lock, Smile, Sun, Moon, CloudRain, LogOut, Award, Flame, Trophy } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import ExportData from './ExportData';
+import BackupManager from './BackupManager';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 const ProfileView = () => {
-  const { setActiveModal, triggerReward } = useAppStore();
+  const { setActiveModal, triggerReward, points, streak } = useAppStore();
   const { user, signOut } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -80,24 +80,40 @@ const ProfileView = () => {
 
   return (
     <div className="flex flex-col h-screen bg-background pb-20 animate-slide-in-from-right">
-      <div className="bg-card p-6 pb-8 rounded-b-[40px] shadow-sm text-center relative z-10">
-        <div className="w-24 h-24 bg-primary/10 rounded-full mx-auto mb-4 border-4 border-card shadow-lg flex items-center justify-center text-3xl font-bold text-primary relative">
-          {profile?.display_name ? profile.display_name.charAt(0).toUpperCase() : <User size={32} />}
-          <div className="absolute bottom-0 right-0 w-8 h-8 bg-success border-4 border-card rounded-full flex items-center justify-center">
-            <CheckCircle size={14} className="text-white" />
+      <div className="bg-gradient-to-br from-primary to-accent p-8 pb-10 rounded-b-[40px] shadow-lg text-center relative z-10 text-white">
+        <div className="w-28 h-28 bg-white/20 backdrop-blur-md rounded-full mx-auto mb-4 border-4 border-white/50 shadow-xl flex items-center justify-center text-4xl font-bold relative">
+          {profile?.display_name ? profile.display_name.charAt(0).toUpperCase() : <User size={40} />}
+          <div className="absolute bottom-0 right-0 w-9 h-9 bg-success border-4 border-white rounded-full flex items-center justify-center">
+            <CheckCircle size={16} className="text-white" />
           </div>
         </div>
 
-        <h2 className="text-xl font-bold text-foreground">{profile?.display_name || 'Usuário'}</h2>
-        <p className="text-sm text-muted-foreground mb-4">{user?.email}</p>
+        <h2 className="text-2xl font-bold mb-1">{profile?.display_name || 'Usuário'}</h2>
+        <p className="text-sm opacity-90 mb-6">{user?.email}</p>
+
+        {/* Stats */}
+        <div className="flex justify-center gap-4 mb-6">
+          <div className="bg-white/20 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/30">
+            <Trophy className="mx-auto mb-1" size={20} />
+            <p className="text-2xl font-bold">{points}</p>
+            <p className="text-xs opacity-90">Pontos</p>
+          </div>
+          <div className="bg-white/20 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/30">
+            <Flame className="mx-auto mb-1 text-orange-300" size={20} />
+            <p className="text-2xl font-bold">{streak}</p>
+            <p className="text-xs opacity-90">Dias</p>
+          </div>
+        </div>
         
         <div className="flex justify-center gap-2 flex-wrap mb-4">
-          <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold">Mãe Guardiã</span>
+          <span className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-bold border border-white/30">
+            🏆 Mãe Guardiã
+          </span>
           <button
             onClick={() => setActiveModal('about')}
-            className="bg-accent/10 text-accent px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 border border-accent/20"
+            className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 border border-white/30 hover:bg-white/30 transition-colors"
           >
-            <Info size={12} /> Sobre o Acolher
+            <Info size={14} /> Sobre
           </button>
         </div>
 
@@ -105,7 +121,7 @@ const ProfileView = () => {
           onClick={handleLogout}
           variant="outline"
           size="sm"
-          className="mt-2"
+          className="mt-2 bg-white/10 border-white/30 text-white hover:bg-white/20"
         >
           <LogOut size={14} className="mr-2" />
           Sair
@@ -142,20 +158,29 @@ const ProfileView = () => {
           </div>
         )}
 
-        {/* Export Data */}
-        <ExportData />
+        {/* Backup Manager */}
+        <BackupManager />
 
         {/* Achievements Card */}
-        <div className="bg-card p-4 rounded-2xl shadow-sm border border-border space-y-3">
-          <h3 className="font-bold text-foreground flex items-center gap-2">
-            <Award className="text-warning" size={18} /> Conquistas
+        <div className="bg-card p-5 rounded-2xl shadow-sm border border-border space-y-4">
+          <h3 className="font-bold text-foreground flex items-center gap-2 text-lg">
+            <Award className="text-warning" size={20} /> Conquistas
           </h3>
-          <div className="flex items-center justify-between p-3 bg-gradient-to-r from-warning/10 to-success/10 rounded-xl">
-            <div>
-              <p className="text-sm font-bold text-foreground">Mãe Constante</p>
-              <p className="text-xs text-muted-foreground">7 dias seguidos</p>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-4 bg-gradient-to-r from-warning/10 to-success/10 rounded-xl border border-warning/20">
+              <div>
+                <p className="text-base font-bold text-foreground">🔥 Mãe Constante</p>
+                <p className="text-sm text-muted-foreground">{streak} dias seguidos</p>
+              </div>
+              <Flame className="text-warning" size={32} />
             </div>
-            <Flame className="text-warning" size={24} />
+            <div className="flex items-center justify-between p-4 bg-gradient-to-r from-primary/10 to-accent/10 rounded-xl border border-primary/20">
+              <div>
+                <p className="text-base font-bold text-foreground">💎 Pontos Acumulados</p>
+                <p className="text-sm text-muted-foreground">{points} pontos totais</p>
+              </div>
+              <Trophy className="text-primary" size={32} />
+            </div>
           </div>
         </div>
 
