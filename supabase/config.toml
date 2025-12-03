@@ -1,1 +1,4 @@
 project_id = "xefpvcwvnvavtlajyyxu"
+
+[functions.smart-reminders]
+verify_jwt = true

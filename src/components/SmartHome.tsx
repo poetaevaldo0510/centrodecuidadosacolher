@@ -3,6 +3,8 @@ import { Coins, Sparkles, Zap, Settings, PlusCircle, BookHeart, AlertTriangle, F
 import { useAppStore } from '@/lib/store';
 import { ACTION_LIBRARY } from '@/lib/data';
 import WeatherWidget from './WeatherWidget';
+import WeeklyChallenges from './WeeklyChallenges';
+import SmartReminders from './SmartReminders';
 
 const SmartHome = () => {
   const [timeOfDay, setTimeOfDay] = useState<'morning' | 'afternoon' | 'night'>('morning');
@@ -207,6 +209,12 @@ const SmartHome = () => {
             )}
           </div>
         </div>
+
+        {/* Weekly Challenges */}
+        <WeeklyChallenges />
+
+        {/* Smart Reminders with AI */}
+        <SmartReminders />
       </div>
     </div>
   );
