@@ -1,18 +1,22 @@
 import { useState, useEffect } from 'react';
-import { User, CheckCircle, BookHeart, Edit3, Info, Brain, File, Lock, Smile, Sun, Moon, CloudRain, LogOut, Award, Flame, Trophy } from 'lucide-react';
+import { User, CheckCircle, BookHeart, Edit3, Info, Brain, File, Lock, Smile, Sun, Moon, CloudRain, LogOut, Award, Flame, Trophy, Shield } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import BackupManager from './BackupManager';
+import BadgesDisplay from './BadgesDisplay';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { useNavigate } from 'react-router-dom';
 
 const ProfileView = () => {
   const { setActiveModal, triggerReward, points, streak } = useAppStore();
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const {
     permission,
     isSupported,
@@ -24,6 +28,7 @@ const ProfileView = () => {
   useEffect(() => {
     if (user) {
       loadProfile();
+      checkAdminStatus();
     }
 
     // Subscribe to notifications if permission is granted
@@ -52,6 +57,17 @@ const ProfileView = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const checkAdminStatus = async () => {
+    const { data } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user?.id)
+      .eq('role', 'admin')
+      .maybeSingle();
+    
+    setIsAdmin(!!data);
   };
 
   const handleLogout = async () => {
@@ -115,6 +131,14 @@ const ProfileView = () => {
           >
             <Info size={14} /> Sobre
           </button>
+          {isAdmin && (
+            <button
+              onClick={() => navigate('/admin')}
+              className="bg-warning/80 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 border border-warning hover:bg-warning transition-colors"
+            >
+              <Shield size={14} /> Admin
+            </button>
+          )}
         </div>
 
         <Button
@@ -161,28 +185,8 @@ const ProfileView = () => {
         {/* Backup Manager */}
         <BackupManager />
 
-        {/* Achievements Card */}
-        <div className="bg-card p-5 rounded-2xl shadow-sm border border-border space-y-4">
-          <h3 className="font-bold text-foreground flex items-center gap-2 text-lg">
-            <Award className="text-warning" size={20} /> Conquistas
-          </h3>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-4 bg-gradient-to-r from-warning/10 to-success/10 rounded-xl border border-warning/20">
-              <div>
-                <p className="text-base font-bold text-foreground">🔥 Mãe Constante</p>
-                <p className="text-sm text-muted-foreground">{streak} dias seguidos</p>
-              </div>
-              <Flame className="text-warning" size={32} />
-            </div>
-            <div className="flex items-center justify-between p-4 bg-gradient-to-r from-primary/10 to-accent/10 rounded-xl border border-primary/20">
-              <div>
-                <p className="text-base font-bold text-foreground">💎 Pontos Acumulados</p>
-                <p className="text-sm text-muted-foreground">{points} pontos totais</p>
-              </div>
-              <Trophy className="text-primary" size={32} />
-            </div>
-          </div>
-        </div>
+        {/* Badges Display */}
+        <BadgesDisplay />
 
         {/* Diário */}
         <div>
