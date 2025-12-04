@@ -76,6 +76,17 @@ const WeatherWidget = () => {
     );
   }
 
+  const getOutingSuggestion = () => {
+    if (!weather) return '';
+    if (weather.condition === 'Chuvoso' || weather.condition === 'Tempestade') 
+      return '🏠 Dia ideal para atividades em casa';
+    if (weather.temp > 30) 
+      return '🏊 Bom dia para atividades com água';
+    if (weather.temp < 18) 
+      return '🧥 Lembre de agasalhar bem a criança';
+    return '🌳 Ótimo dia para passeio ao ar livre!';
+  };
+
   return (
     <div className="bg-gradient-to-br from-blue-400/20 to-blue-600/20 p-4 rounded-2xl border border-blue-200/50 backdrop-blur-sm">
       <div className="flex items-center justify-between">
@@ -96,6 +107,9 @@ const WeatherWidget = () => {
           {getWeatherIcon()}
         </div>
       </div>
+      <p className="mt-3 text-xs text-blue-800 dark:text-blue-200 font-medium bg-blue-500/10 px-3 py-2 rounded-xl">
+        {getOutingSuggestion()}
+      </p>
     </div>
   );
 };
