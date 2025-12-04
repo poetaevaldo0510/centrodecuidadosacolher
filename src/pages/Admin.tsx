@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import AdminCharts from '@/components/AdminCharts';
 
 interface Stats {
   totalUsers: number;
@@ -45,7 +46,7 @@ const Admin = () => {
   });
   const [users, setUsers] = useState<UserData[]>([]);
   const [activities, setActivities] = useState<ActivityLog[]>([]);
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'activity'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'activity' | 'charts'>('overview');
 
   useEffect(() => {
     checkAdminStatus();
@@ -171,7 +172,7 @@ const Admin = () => {
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6 overflow-x-auto">
-        {['overview', 'users', 'activity'].map((tab) => (
+        {['overview', 'charts', 'users', 'activity'].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab as any)}
@@ -181,7 +182,7 @@ const Admin = () => {
                 : 'bg-card border border-border text-muted-foreground hover:bg-muted'
             }`}
           >
-            {tab === 'overview' ? '📊 Visão Geral' : tab === 'users' ? '👥 Usuários' : '📋 Atividades'}
+            {tab === 'overview' ? '📊 Visão Geral' : tab === 'charts' ? '📈 Gráficos' : tab === 'users' ? '👥 Usuários' : '📋 Atividades'}
           </button>
         ))}
       </div>
@@ -219,6 +220,9 @@ const Admin = () => {
           </div>
         </div>
       )}
+
+      {/* Charts Tab */}
+      {activeTab === 'charts' && <AdminCharts />}
 
       {/* Users Tab */}
       {activeTab === 'users' && (

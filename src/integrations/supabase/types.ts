@@ -167,6 +167,41 @@ export type Database = {
           },
         ]
       }
+      feed_comments: {
+        Row: {
+          anonymous_name: string
+          content: string
+          created_at: string | null
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          anonymous_name: string
+          content: string
+          created_at?: string | null
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          anonymous_name?: string
+          content?: string
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "social_feed"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feed_likes: {
         Row: {
           created_at: string | null
@@ -382,6 +417,82 @@ export type Database = {
           url?: string | null
         }
         Relationships: []
+      }
+      reward_purchases: {
+        Row: {
+          id: string
+          points_spent: number
+          purchased_at: string | null
+          reward_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          points_spent: number
+          purchased_at?: string | null
+          reward_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          points_spent?: number
+          purchased_at?: string | null
+          reward_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reward_purchases_reward_id_fkey"
+            columns: ["reward_id"]
+            isOneToOne: false
+            referencedRelation: "rewards_store"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rewards_store: {
+        Row: {
+          badge_id: string | null
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          points_cost: number
+          reward_type: string
+        }
+        Insert: {
+          badge_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          points_cost: number
+          reward_type?: string
+        }
+        Update: {
+          badge_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          points_cost?: number
+          reward_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rewards_store_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       routines: {
         Row: {

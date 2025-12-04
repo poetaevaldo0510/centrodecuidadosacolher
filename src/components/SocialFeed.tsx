@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Heart, MessageCircle, Send, Users, Sparkles, Plus } from 'lucide-react';
+import { Heart, MessageCircle, Send, Users, Sparkles, Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
+import FeedComments from './FeedComments';
 
 interface FeedPost {
   id: string;
@@ -12,9 +13,11 @@ interface FeedPost {
   content: string;
   achievement_type: string | null;
   likes_count: number;
+  comments_count: number;
   created_at: string;
   user_id: string;
   hasLiked?: boolean;
+  showComments?: boolean;
 }
 
 const anonymousNames = [
@@ -119,6 +122,14 @@ const SocialFeed = () => {
     } catch (error) {
       console.error('Error toggling like:', error);
     }
+  };
+
+  const toggleComments = (postId: string) => {
+    setPosts(posts.map(post => 
+      post.id === postId 
+        ? { ...post, showComments: !post.showComments }
+        : post
+    ));
   };
 
   const getTimeAgo = (date: string) => {
@@ -227,11 +238,23 @@ const SocialFeed = () => {
                 <Heart size={18} fill={post.hasLiked ? 'currentColor' : 'none'} />
                 {post.likes_count > 0 && post.likes_count}
               </button>
-              <span className="flex items-center gap-2 text-sm text-muted-foreground">
+              <button 
+                onClick={() => toggleComments(post.id)}
+                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
                 <MessageCircle size={18} />
-                Apoiar
-              </span>
+                {post.comments_count > 0 && post.comments_count}
+                {post.showComments ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
             </div>
+            
+            {/* Comments Section */}
+            {post.showComments && (
+              <FeedComments 
+                postId={post.id} 
+                onCommentAdded={loadPosts}
+              />
+            )}
           </div>
         ))}
 

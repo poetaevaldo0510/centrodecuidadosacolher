@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Home, MessageCircle, Map, ShoppingBag, User, BookOpen, Camera, Calendar as CalendarIcon } from 'lucide-react';
+import { Home, MessageCircle, Map, ShoppingBag, User, BookOpen, Camera, Calendar as CalendarIcon, Gift } from 'lucide-react';
 import WelcomeScreen from '@/components/WelcomeScreen';
 import OnboardingTutorial from '@/components/OnboardingTutorial';
 import RewardToast from '@/components/RewardToast';
@@ -11,6 +11,7 @@ import ProfileView from '@/components/ProfileView';
 import ResourcesLibrary from '@/components/ResourcesLibrary';
 import PhotoGallery from '@/components/PhotoGallery';
 import Calendar from '@/components/Calendar';
+import RewardsStore from '@/components/RewardsStore';
 import ModalsContainer from '@/components/ModalsContainer';
 import { useAppStore } from '@/lib/store';
 import { useAuth } from '@/hooks/useAuth';
@@ -70,7 +71,7 @@ const Index = () => {
     { id: 'gallery', icon: Camera, label: 'Galeria' },
     { id: 'calendar', icon: CalendarIcon, label: 'Agenda' },
     { id: 'community', icon: MessageCircle, label: 'Tribo' },
-    { id: 'explore', icon: Map, label: 'Explorar' },
+    { id: 'rewards', icon: Gift, label: 'Loja' },
     { id: 'market', icon: ShoppingBag, label: 'Mercado' },
     { id: 'profile', icon: User, label: 'Perfil' },
   ];
@@ -90,7 +91,7 @@ const Index = () => {
         {activeTab === 'gallery' && <PhotoGallery />}
         {activeTab === 'calendar' && <Calendar />}
         {activeTab === 'community' && <CommunityHub />}
-        {activeTab === 'explore' && <ExploreMap />}
+        {activeTab === 'rewards' && <RewardsStore />}
         {activeTab === 'market' && <MarketHub />}
         {activeTab === 'profile' && <ProfileView />}
       </div>
