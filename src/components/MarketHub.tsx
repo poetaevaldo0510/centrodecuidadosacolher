@@ -23,6 +23,7 @@ const MarketHub = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [priceFilter, setPriceFilter] = useState<'all' | 'low' | 'medium' | 'high'>('all');
+  const [sortBy, setSortBy] = useState<'recent' | 'price_low' | 'price_high'>('recent');
 
   useEffect(() => {
     fetchMarketplaceItems();
@@ -74,8 +75,15 @@ const MarketHub = () => {
       });
     }
 
+    // Apply sorting
+    if (sortBy === 'price_low') {
+      filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
+    } else if (sortBy === 'price_high') {
+      filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
+    }
+
     setFilteredItems(filtered);
-  }, [searchQuery, priceFilter, marketplaceItems]);
+  }, [searchQuery, priceFilter, sortBy, marketplaceItems]);
 
   return (
     <div className="flex flex-col h-screen bg-background pb-20 animate-fade-in">
@@ -145,6 +153,40 @@ const MarketHub = () => {
               }`}
             >
               Acima de R$ 150
+            </button>
+          </div>
+          
+          {/* Sort Options */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setSortBy('recent')}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+                sortBy === 'recent'
+                  ? 'bg-secondary text-secondary-foreground'
+                  : 'bg-muted/50 text-muted-foreground hover:bg-muted/80'
+              }`}
+            >
+              Recentes
+            </button>
+            <button
+              onClick={() => setSortBy('price_low')}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+                sortBy === 'price_low'
+                  ? 'bg-secondary text-secondary-foreground'
+                  : 'bg-muted/50 text-muted-foreground hover:bg-muted/80'
+              }`}
+            >
+              Menor Preço
+            </button>
+            <button
+              onClick={() => setSortBy('price_high')}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+                sortBy === 'price_high'
+                  ? 'bg-secondary text-secondary-foreground'
+                  : 'bg-muted/50 text-muted-foreground hover:bg-muted/80'
+              }`}
+            >
+              Maior Preço
             </button>
           </div>
         </div>

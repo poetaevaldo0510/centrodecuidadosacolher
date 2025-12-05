@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Heart, MessageCircle, Send, Users, Sparkles, Plus, ChevronDown, ChevronUp } from 'lucide-react';
+import { Heart, MessageCircle, Send, Users, Sparkles, Plus, ChevronDown, ChevronUp, Search, Filter } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
+import { Input } from './ui/input';
 import FeedComments from './FeedComments';
 
 interface FeedPost {
@@ -29,14 +30,39 @@ const anonymousNames = [
 const SocialFeed = () => {
   const { user } = useAuth();
   const [posts, setPosts] = useState<FeedPost[]>([]);
+  const [filteredPosts, setFilteredPosts] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNewPost, setShowNewPost] = useState(false);
   const [newContent, setNewContent] = useState('');
   const [posting, setPosting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'recent' | 'popular'>('recent');
 
   useEffect(() => {
     loadPosts();
   }, [user]);
+
+  useEffect(() => {
+    let filtered = [...posts];
+    
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(post => 
+        post.content.toLowerCase().includes(query) ||
+        post.anonymous_name.toLowerCase().includes(query)
+      );
+    }
+    
+    // Apply sorting
+    if (sortBy === 'popular') {
+      filtered.sort((a, b) => (b.likes_count + b.comments_count) - (a.likes_count + a.comments_count));
+    } else {
+      filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
+    
+    setFilteredPosts(filtered);
+  }, [posts, searchQuery, sortBy]);
 
   const loadPosts = async () => {
     try {
@@ -172,6 +198,43 @@ const SocialFeed = () => {
       </div>
 
       <div className="px-4 space-y-4">
+        {/* Search and Filters */}
+        <div className="space-y-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+            <Input
+              type="text"
+              placeholder="Buscar publicações..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          
+          <div className="flex gap-2">
+            <button
+              onClick={() => setSortBy('recent')}
+              className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
+                sortBy === 'recent'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+              }`}
+            >
+              Mais Recentes
+            </button>
+            <button
+              onClick={() => setSortBy('popular')}
+              className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
+                sortBy === 'popular'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+              }`}
+            >
+              Mais Populares
+            </button>
+          </div>
+        </div>
+
         {/* New Post Modal */}
         {showNewPost && (
           <div className="bg-card p-5 rounded-2xl border border-border shadow-lg animate-scale-in">
@@ -207,7 +270,7 @@ const SocialFeed = () => {
         )}
 
         {/* Posts */}
-        {posts.map((post) => (
+        {filteredPosts.map((post) => (
           <div key={post.id} className="bg-card p-4 rounded-2xl border border-border shadow-sm">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-bold text-sm">
@@ -258,11 +321,13 @@ const SocialFeed = () => {
           </div>
         ))}
 
-        {posts.length === 0 && (
+        {filteredPosts.length === 0 && (
           <div className="text-center py-12">
             <Users className="mx-auto text-muted-foreground mb-4" size={48} />
-            <p className="text-muted-foreground">Nenhuma publicação ainda.</p>
-            <p className="text-sm text-muted-foreground">Seja o primeiro a compartilhar!</p>
+            <p className="text-muted-foreground">
+              {searchQuery ? 'Nenhuma publicação encontrada.' : 'Nenhuma publicação ainda.'}
+            </p>
+            {!searchQuery && <p className="text-sm text-muted-foreground">Seja o primeiro a compartilhar!</p>}
           </div>
         )}
       </div>
