@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Send, Trash2 } from 'lucide-react';
+import { Send, Trash2, Reply, AtSign } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -12,6 +12,8 @@ interface Comment {
   content: string;
   created_at: string;
   user_id: string;
+  parent_id: string | null;
+  mentioned_user_id: string | null;
 }
 
 interface FeedCommentsProps {
@@ -30,6 +32,7 @@ const FeedComments = ({ postId, onCommentAdded }: FeedCommentsProps) => {
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
   const [posting, setPosting] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
 
   useEffect(() => {
     loadComments();
@@ -65,15 +68,18 @@ const FeedComments = ({ postId, onCommentAdded }: FeedCommentsProps) => {
           post_id: postId,
           user_id: user.id,
           anonymous_name: randomName,
-          content: newComment.trim()
+          content: newComment.trim(),
+          parent_id: replyingTo?.id || null,
+          mentioned_user_id: replyingTo?.user_id || null
         });
 
       if (error) throw error;
       
       setNewComment('');
+      setReplyingTo(null);
       loadComments();
       onCommentAdded?.();
-      toast.success('Comentário adicionado!');
+      toast.success(replyingTo ? 'Resposta adicionada!' : 'Comentário adicionado!');
     } catch (error) {
       console.error('Error adding comment:', error);
       toast.error('Erro ao comentar');
@@ -105,6 +111,67 @@ const FeedComments = ({ postId, onCommentAdded }: FeedCommentsProps) => {
     return `${Math.floor(seconds / 86400)}d`;
   };
 
+  // Organize comments into threads
+  const rootComments = comments.filter(c => !c.parent_id);
+  const getReplies = (parentId: string) => comments.filter(c => c.parent_id === parentId);
+
+  const renderComment = (comment: Comment, isReply = false) => {
+    const replies = getReplies(comment.id);
+    const mentionedComment = comment.mentioned_user_id 
+      ? comments.find(c => c.user_id === comment.mentioned_user_id)
+      : null;
+
+    return (
+      <div key={comment.id} className={`${isReply ? 'ml-8 mt-2' : ''}`}>
+        <div className="flex gap-2 items-start">
+          <div className={`${isReply ? 'w-6 h-6 text-[10px]' : 'w-7 h-7 text-xs'} bg-gradient-to-br from-blue-400 to-purple-400 rounded-full flex items-center justify-center text-white font-bold shrink-0`}>
+            {comment.anonymous_name.charAt(0)}
+          </div>
+          <div className="flex-1 bg-muted/50 rounded-xl px-3 py-2">
+            <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+              <span className={`${isReply ? 'text-[10px]' : 'text-xs'} font-bold text-foreground`}>
+                {comment.anonymous_name}
+              </span>
+              {mentionedComment && (
+                <span className="text-[10px] text-primary flex items-center gap-0.5">
+                  <AtSign size={10} />
+                  {mentionedComment.anonymous_name}
+                </span>
+              )}
+              <span className={`${isReply ? 'text-[10px]' : 'text-xs'} text-muted-foreground`}>
+                {getTimeAgo(comment.created_at)}
+              </span>
+            </div>
+            <p className={`${isReply ? 'text-xs' : 'text-sm'} text-foreground`}>{comment.content}</p>
+          </div>
+          <div className="flex items-center gap-1">
+            {user && (
+              <button
+                onClick={() => {
+                  setReplyingTo(comment);
+                  setNewComment('');
+                }}
+                className="p-1 text-muted-foreground hover:text-primary transition-colors"
+                title="Responder"
+              >
+                <Reply size={14} />
+              </button>
+            )}
+            {user && comment.user_id === user.id && (
+              <button
+                onClick={() => deleteComment(comment.id)}
+                className="p-1 text-muted-foreground hover:text-destructive transition-colors"
+              >
+                <Trash2 size={14} />
+              </button>
+            )}
+          </div>
+        </div>
+        {replies.map(reply => renderComment(reply, true))}
+      </div>
+    );
+  };
+
   if (loading) {
     return <div className="p-4 text-center text-muted-foreground text-sm">Carregando...</div>;
   }
@@ -112,28 +179,23 @@ const FeedComments = ({ postId, onCommentAdded }: FeedCommentsProps) => {
   return (
     <div className="space-y-3 pt-3 border-t border-border">
       {/* Comments List */}
-      {comments.map((comment) => (
-        <div key={comment.id} className="flex gap-2 items-start">
-          <div className="w-7 h-7 bg-gradient-to-br from-blue-400 to-purple-400 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0">
-            {comment.anonymous_name.charAt(0)}
-          </div>
-          <div className="flex-1 bg-muted/50 rounded-xl px-3 py-2">
-            <div className="flex items-center gap-2 mb-0.5">
-              <span className="text-xs font-bold text-foreground">{comment.anonymous_name}</span>
-              <span className="text-xs text-muted-foreground">{getTimeAgo(comment.created_at)}</span>
-            </div>
-            <p className="text-sm text-foreground">{comment.content}</p>
-          </div>
-          {user && comment.user_id === user.id && (
-            <button
-              onClick={() => deleteComment(comment.id)}
-              className="p-1 text-muted-foreground hover:text-destructive transition-colors"
-            >
-              <Trash2 size={14} />
-            </button>
-          )}
+      {rootComments.map(comment => renderComment(comment))}
+
+      {/* Reply indicator */}
+      {replyingTo && (
+        <div className="flex items-center gap-2 px-2 py-1 bg-primary/10 rounded-lg text-xs">
+          <Reply size={12} className="text-primary" />
+          <span className="text-muted-foreground">
+            Respondendo a <span className="font-bold text-primary">{replyingTo.anonymous_name}</span>
+          </span>
+          <button
+            onClick={() => setReplyingTo(null)}
+            className="ml-auto text-muted-foreground hover:text-foreground"
+          >
+            ✕
+          </button>
         </div>
-      ))}
+      )}
 
       {/* Add Comment */}
       {user && (
@@ -141,7 +203,7 @@ const FeedComments = ({ postId, onCommentAdded }: FeedCommentsProps) => {
           <Input
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            placeholder="Escreva um comentário de apoio..."
+            placeholder={replyingTo ? `Responder a ${replyingTo.anonymous_name}...` : "Escreva um comentário de apoio..."}
             className="flex-1 text-sm h-9"
             maxLength={300}
             onKeyDown={(e) => e.key === 'Enter' && addComment()}

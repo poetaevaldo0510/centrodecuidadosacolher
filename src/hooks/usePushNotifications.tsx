@@ -109,6 +109,40 @@ export const usePushNotifications = () => {
   const subscribeToCalendarReminders = (userId: string) => {
     if (permission !== 'granted') return () => {};
 
+    // Use edge function to check reminders periodically
+    const checkReminders = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('push-notifications', {
+          body: { action: 'check_reminders', userId }
+        });
+
+        if (error) {
+          console.error('Error checking reminders:', error);
+          return;
+        }
+
+        // Send notifications for upcoming events
+        data?.notifications?.forEach((notification: any) => {
+          if (notification.minutesUntil <= 30 && notification.minutesUntil > 0) {
+            sendNotification(notification.title, {
+              body: notification.body,
+              tag: `reminder-${notification.id}`,
+              requireInteraction: true,
+            });
+          }
+        });
+      } catch (err) {
+        console.error('Error in reminder check:', err);
+      }
+    };
+
+    // Check immediately
+    checkReminders();
+
+    // Check every 5 minutes
+    const intervalId = setInterval(checkReminders, 5 * 60 * 1000);
+
+    // Also subscribe to realtime changes for immediate reminders
     const channel = supabase
       .channel('calendar-reminders')
       .on(
@@ -121,7 +155,7 @@ export const usePushNotifications = () => {
         },
         async (payload) => {
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-            const event = payload.new;
+            const event = payload.new as any;
             
             // Check if event needs a reminder
             if (event.remind_before_minutes > 0 && !event.completed) {
@@ -133,8 +167,13 @@ export const usePushNotifications = () => {
               const timeDiff = reminderTime.getTime() - now.getTime();
               if (timeDiff > 0 && timeDiff < 24 * 60 * 60 * 1000) { // Within 24 hours
                 setTimeout(() => {
+                  const typeLabels: Record<string, string> = {
+                    medication: '💊 Medicação',
+                    therapy: '🧩 Terapia',
+                    appointment: '📅 Consulta'
+                  };
                   sendNotification(`Lembrete: ${event.title}`, {
-                    body: `Em ${event.remind_before_minutes} minutos - ${event.event_type === 'medication' ? 'Medicação' : event.event_type === 'appointment' ? 'Consulta' : 'Terapia'}`,
+                    body: `Em ${event.remind_before_minutes} minutos - ${typeLabels[event.event_type] || '⏰ Evento'}`,
                     tag: `reminder-${event.id}`,
                     requireInteraction: true,
                   });
@@ -147,6 +186,7 @@ export const usePushNotifications = () => {
       .subscribe();
 
     return () => {
+      clearInterval(intervalId);
       supabase.removeChannel(channel);
     };
   };

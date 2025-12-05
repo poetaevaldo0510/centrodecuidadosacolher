@@ -173,6 +173,8 @@ export type Database = {
           content: string
           created_at: string | null
           id: string
+          mentioned_user_id: string | null
+          parent_id: string | null
           post_id: string
           user_id: string
         }
@@ -181,6 +183,8 @@ export type Database = {
           content: string
           created_at?: string | null
           id?: string
+          mentioned_user_id?: string | null
+          parent_id?: string | null
           post_id: string
           user_id: string
         }
@@ -189,10 +193,19 @@ export type Database = {
           content?: string
           created_at?: string | null
           id?: string
+          mentioned_user_id?: string | null
+          parent_id?: string | null
           post_id?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "feed_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "feed_comments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "feed_comments_post_id_fkey"
             columns: ["post_id"]
