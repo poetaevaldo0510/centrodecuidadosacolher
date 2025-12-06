@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { ShoppingBag, Search, Filter } from 'lucide-react';
+import { ShoppingBag, Search, Plus, MessageCircle, Heart, Eye } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Button } from './ui/button';
 
 interface MarketItem {
   id: string;
@@ -11,6 +12,7 @@ interface MarketItem {
   price: number | null;
   image_url: string | null;
   user_id: string;
+  featured: boolean | null;
   profiles: {
     display_name: string | null;
   } | null;
@@ -24,6 +26,7 @@ const MarketHub = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [priceFilter, setPriceFilter] = useState<'all' | 'low' | 'medium' | 'high'>('all');
   const [sortBy, setSortBy] = useState<'recent' | 'price_low' | 'price_high'>('recent');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   useEffect(() => {
     fetchMarketplaceItems();
@@ -54,7 +57,6 @@ const MarketHub = () => {
   useEffect(() => {
     let filtered = [...marketplaceItems];
 
-    // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
@@ -64,7 +66,6 @@ const MarketHub = () => {
       );
     }
 
-    // Apply price filter
     if (priceFilter !== 'all') {
       filtered = filtered.filter((item) => {
         if (!item.price) return false;
@@ -75,7 +76,6 @@ const MarketHub = () => {
       });
     }
 
-    // Apply sorting
     if (sortBy === 'price_low') {
       filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
     } else if (sortBy === 'price_high') {
@@ -85,173 +85,179 @@ const MarketHub = () => {
     setFilteredItems(filtered);
   }, [searchQuery, priceFilter, sortBy, marketplaceItems]);
 
+  const priceFilters = [
+    { value: 'all', label: 'Todos' },
+    { value: 'low', label: '< R$50' },
+    { value: 'medium', label: 'R$50-150' },
+    { value: 'high', label: '> R$150' },
+  ];
+
+  const sortOptions = [
+    { value: 'recent', label: 'Recentes' },
+    { value: 'price_low', label: '↑ Preço' },
+    { value: 'price_high', label: '↓ Preço' },
+  ];
+
   return (
-    <div className="flex flex-col h-screen bg-background pb-20 animate-fade-in">
-      <div className="bg-card px-6 pt-12 pb-6 shadow-sm z-10 sticky top-0">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <ShoppingBag className="text-success" /> Mercado
-          </h2>
-          <button
+    <div className="flex flex-col min-h-screen bg-background pb-24 animate-fade-in">
+      {/* Header - Compacto para mobile */}
+      <div className="bg-gradient-to-br from-success/10 via-card to-card px-4 pt-10 pb-4 sticky top-0 z-10 border-b border-border">
+        <div className="flex justify-between items-center mb-3">
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-success/20 rounded-xl">
+              <ShoppingBag className="text-success" size={22} />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-foreground">Mercado</h2>
+              <p className="text-[10px] text-muted-foreground">
+                {filteredItems.length} produto{filteredItems.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+          </div>
+          <Button
+            size="sm"
             onClick={() => setActiveModal('sell')}
-            className="bg-primary text-primary-foreground text-xs px-3 py-1 rounded-full font-bold shadow hover:bg-primary/90"
+            className="bg-success hover:bg-success/90 text-white rounded-xl px-4"
           >
-            + Vender
-          </button>
+            <Plus size={16} className="mr-1" /> Vender
+          </Button>
         </div>
         
-        {/* Search and Filters */}
-        <div className="space-y-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-            <input
-              type="text"
-              placeholder="Buscar produtos..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-          
-          <div className="flex gap-2 overflow-x-auto pb-1">
+        {/* Search - Mais compacto */}
+        <div className="relative mb-3">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+          <input
+            type="text"
+            placeholder="Buscar produtos..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-4 py-2.5 bg-background border border-border rounded-xl text-sm outline-none focus:ring-2 focus:ring-success/50"
+          />
+        </div>
+        
+        {/* Filters - Scroll horizontal com chips menores */}
+        <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+          {priceFilters.map((filter) => (
             <button
-              onClick={() => setPriceFilter('all')}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
-                priceFilter === 'all'
+              key={filter.value}
+              onClick={() => setPriceFilter(filter.value as any)}
+              className={`px-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all flex-shrink-0 ${
+                priceFilter === filter.value
+                  ? 'bg-success text-white'
+                  : 'bg-muted text-muted-foreground'
+              }`}
+            >
+              {filter.label}
+            </button>
+          ))}
+          <div className="w-px bg-border mx-1 flex-shrink-0" />
+          {sortOptions.map((option) => (
+            <button
+              key={option.value}
+              onClick={() => setSortBy(option.value as any)}
+              className={`px-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all flex-shrink-0 ${
+                sortBy === option.value
                   ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  : 'bg-muted/50 text-muted-foreground'
               }`}
             >
-              Todos
+              {option.label}
             </button>
-            <button
-              onClick={() => setPriceFilter('low')}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
-                priceFilter === 'low'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
-              }`}
-            >
-              Até R$ 50
-            </button>
-            <button
-              onClick={() => setPriceFilter('medium')}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
-                priceFilter === 'medium'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
-              }`}
-            >
-              R$ 50 - R$ 150
-            </button>
-            <button
-              onClick={() => setPriceFilter('high')}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
-                priceFilter === 'high'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
-              }`}
-            >
-              Acima de R$ 150
-            </button>
-          </div>
-          
-          {/* Sort Options */}
-          <div className="flex gap-2">
-            <button
-              onClick={() => setSortBy('recent')}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
-                sortBy === 'recent'
-                  ? 'bg-secondary text-secondary-foreground'
-                  : 'bg-muted/50 text-muted-foreground hover:bg-muted/80'
-              }`}
-            >
-              Recentes
-            </button>
-            <button
-              onClick={() => setSortBy('price_low')}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
-                sortBy === 'price_low'
-                  ? 'bg-secondary text-secondary-foreground'
-                  : 'bg-muted/50 text-muted-foreground hover:bg-muted/80'
-              }`}
-            >
-              Menor Preço
-            </button>
-            <button
-              onClick={() => setSortBy('price_high')}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
-                sortBy === 'price_high'
-                  ? 'bg-secondary text-secondary-foreground'
-                  : 'bg-muted/50 text-muted-foreground hover:bg-muted/80'
-              }`}
-            >
-              Maior Preço
-            </button>
-          </div>
+          ))}
         </div>
       </div>
       
-      <div className="p-4 space-y-6 overflow-y-auto">
+      {/* Content - Grid otimizado para mobile */}
+      <div className="flex-1 p-3 overflow-y-auto">
         {loading ? (
-          <div className="text-center py-8">
-            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <div className="flex items-center justify-center py-12">
+            <div className="w-8 h-8 border-4 border-success border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : filteredItems.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <ShoppingBag className="w-12 h-12 mx-auto mb-2 opacity-50" />
-            <p>
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-3">
+              <ShoppingBag className="text-muted-foreground" size={32} />
+            </div>
+            <p className="text-foreground font-medium mb-1">
               {searchQuery || priceFilter !== 'all'
-                ? 'Nenhum produto encontrado com os filtros selecionados.'
-                : 'Nenhum produto disponível ainda.'}
+                ? 'Nenhum produto encontrado'
+                : 'Nenhum produto disponível'}
             </p>
-            {!searchQuery && priceFilter === 'all' && (
-              <p className="text-xs mt-1">Seja o primeiro a vender!</p>
-            )}
+            <p className="text-xs text-muted-foreground mb-4">
+              {searchQuery || priceFilter !== 'all'
+                ? 'Tente outros filtros'
+                : 'Seja o primeiro a vender!'}
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setActiveModal('sell')}
+              className="rounded-xl"
+            >
+              <Plus size={14} className="mr-1" /> Anunciar Produto
+            </Button>
           </div>
         ) : (
-          <div>
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="font-bold text-foreground">
-                {searchQuery || priceFilter !== 'all' ? 'Resultados' : 'Destaques'}
-              </h3>
-              <span className="text-xs text-muted-foreground">
-                {filteredItems.length} produto{filteredItems.length !== 1 ? 's' : ''}
-              </span>
-            </div>
+          <div className="grid grid-cols-2 gap-2.5">
             {filteredItems.map((item) => (
               <div
                 key={item.id}
-                className="bg-card p-3 rounded-2xl shadow-sm border border-border flex gap-4 items-center mb-3"
+                className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm hover:shadow-md transition-shadow"
               >
-                {item.image_url ? (
-                  <img
-                    src={item.image_url}
-                    alt={item.title}
-                    className="w-16 h-16 rounded-xl object-cover"
-                  />
-                ) : (
-                  <div className="w-16 h-16 bg-muted rounded-xl flex items-center justify-center text-muted-foreground">
-                    <ShoppingBag size={24} />
-                  </div>
-                )}
-                <div className="flex-1">
-                  <h4 className="font-bold text-foreground">{item.title}</h4>
-                  <p className="text-xs text-muted-foreground mb-1">
-                    por {item.profiles?.display_name || 'Vendedor'}
-                  </p>
-                  {item.price && (
-                    <span className="text-sm font-bold text-success bg-success/10 px-2 py-0.5 rounded">
-                      R$ {item.price.toFixed(2)}
+                {/* Imagem do produto */}
+                <div className="aspect-square relative bg-muted">
+                  {item.image_url ? (
+                    <img
+                      src={item.image_url}
+                      alt={item.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <ShoppingBag className="text-muted-foreground" size={32} />
+                    </div>
+                  )}
+                  {item.featured && (
+                    <span className="absolute top-2 left-2 bg-warning text-warning-foreground text-[9px] font-bold px-2 py-0.5 rounded-full">
+                      Destaque
                     </span>
                   )}
+                  {/* Quick action button */}
+                  <button
+                    className="absolute top-2 right-2 p-1.5 bg-card/90 backdrop-blur-sm rounded-full shadow-sm hover:bg-card transition-colors"
+                    onClick={() => triggerReward("Adicionado aos favoritos!", 2)}
+                  >
+                    <Heart size={14} className="text-muted-foreground" />
+                  </button>
                 </div>
-                <button
-                  className="bg-foreground text-background p-2 rounded-lg hover:scale-105 transition"
-                  onClick={() => triggerReward("Interesse registrado!", 5)}
-                >
-                  <ShoppingBag size={16} />
-                </button>
+                
+                {/* Info do produto */}
+                <div className="p-2.5">
+                  <h4 className="font-semibold text-foreground text-sm line-clamp-1 mb-0.5">
+                    {item.title}
+                  </h4>
+                  <p className="text-[10px] text-muted-foreground line-clamp-1 mb-1.5">
+                    {item.profiles?.display_name || 'Vendedor'}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    {item.price ? (
+                      <span className="text-sm font-bold text-success">
+                        R$ {item.price.toFixed(0)}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">Consultar</span>
+                    )}
+                    <button
+                      className="p-1.5 bg-success/10 hover:bg-success/20 rounded-lg transition-colors"
+                      onClick={() => {
+                        triggerReward("Interesse registrado!", 5);
+                        toast.success('Vendedor notificado!');
+                      }}
+                    >
+                      <MessageCircle size={14} className="text-success" />
+                    </button>
+                  </div>
+                </div>
               </div>
             ))}
           </div>

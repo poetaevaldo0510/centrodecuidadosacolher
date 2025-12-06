@@ -46,6 +46,15 @@ const ReportContentModal = ({ isOpen, onClose, contentId, contentType }: ReportC
 
       if (error) throw error;
 
+      // Notify moderators
+      try {
+        await supabase.functions.invoke('notify-moderators', {
+          body: { report_id: contentId, content_type: contentType, reason: selectedReason }
+        });
+      } catch (notifyError) {
+        console.error('Error notifying moderators:', notifyError);
+      }
+
       toast.success('Denúncia enviada com sucesso. Nossa equipe irá analisar.');
       onClose();
       setSelectedReason('');

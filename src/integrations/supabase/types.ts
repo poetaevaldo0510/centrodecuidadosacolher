@@ -77,6 +77,39 @@ export type Database = {
         }
         Relationships: []
       }
+      blocked_users: {
+        Row: {
+          blocked_at: string | null
+          blocked_by: string
+          expires_at: string | null
+          id: string
+          is_permanent: boolean | null
+          reason: string
+          report_count: number | null
+          user_id: string
+        }
+        Insert: {
+          blocked_at?: string | null
+          blocked_by: string
+          expires_at?: string | null
+          id?: string
+          is_permanent?: boolean | null
+          reason: string
+          report_count?: number | null
+          user_id: string
+        }
+        Update: {
+          blocked_at?: string | null
+          blocked_by?: string
+          expires_at?: string | null
+          id?: string
+          is_permanent?: boolean | null
+          reason?: string
+          report_count?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       calendar_events: {
         Row: {
           completed: boolean | null
@@ -176,6 +209,7 @@ export type Database = {
           id: string
           moderator_notes: string | null
           reason: string
+          reported_user_id: string | null
           reporter_id: string
           reviewed_at: string | null
           reviewed_by: string | null
@@ -189,6 +223,7 @@ export type Database = {
           id?: string
           moderator_notes?: string | null
           reason: string
+          reported_user_id?: string | null
           reporter_id: string
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -202,6 +237,7 @@ export type Database = {
           id?: string
           moderator_notes?: string | null
           reason?: string
+          reported_user_id?: string | null
           reporter_id?: string
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -798,6 +834,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_user_blocked: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

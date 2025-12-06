@@ -1,5 +1,8 @@
 project_id = "xefpvcwvnvavtlajyyxu"
 
+[functions.notify-moderators]
+verify_jwt = false
+
 [functions.send-calendar-email]
 verify_jwt = false
 
