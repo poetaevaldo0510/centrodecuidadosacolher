@@ -1,10 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Send, Trash2, Reply, AtSign } from 'lucide-react';
+import { Send, Trash2, Reply, AtSign, Flag, MoreVertical } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
+import ReportContentModal from './modals/ReportContentModal';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 
 interface Comment {
   id: string;
@@ -33,6 +40,7 @@ const FeedComments = ({ postId, onCommentAdded }: FeedCommentsProps) => {
   const [loading, setLoading] = useState(true);
   const [posting, setPosting] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
+  const [reportModal, setReportModal] = useState<{ isOpen: boolean; commentId: string }>({ isOpen: false, commentId: '' });
 
   useEffect(() => {
     loadComments();
@@ -165,6 +173,24 @@ const FeedComments = ({ postId, onCommentAdded }: FeedCommentsProps) => {
                 <Trash2 size={14} />
               </button>
             )}
+            {user && comment.user_id !== user.id && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="p-1 text-muted-foreground hover:text-foreground transition-colors">
+                    <MoreVertical size={14} />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() => setReportModal({ isOpen: true, commentId: comment.id })}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Flag size={12} className="mr-2" />
+                    Denunciar
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
         {replies.map(reply => renderComment(reply, true))}
@@ -218,6 +244,14 @@ const FeedComments = ({ postId, onCommentAdded }: FeedCommentsProps) => {
           </Button>
         </div>
       )}
+
+      {/* Report Modal */}
+      <ReportContentModal
+        isOpen={reportModal.isOpen}
+        onClose={() => setReportModal({ isOpen: false, commentId: '' })}
+        contentId={reportModal.commentId}
+        contentType="comment"
+      />
     </div>
   );
 };
