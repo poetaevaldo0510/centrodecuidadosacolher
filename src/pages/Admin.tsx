@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Users, Activity, TrendingUp, Calendar, MessageSquare, ShoppingBag, ChevronLeft, Shield, Clock, Eye, Flag } from 'lucide-react';
+import { Users, Activity, TrendingUp, Calendar, MessageSquare, ShoppingBag, ChevronLeft, Shield, Clock, Eye, Flag, Ban } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import AdminCharts from '@/components/AdminCharts';
 import ContentModeration from '@/components/ContentModeration';
+import BlockedUsersManager from '@/components/BlockedUsersManager';
 
 interface Stats {
   totalUsers: number;
@@ -35,6 +36,7 @@ interface UserData {
 const Admin = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<Stats>({
@@ -47,7 +49,8 @@ const Admin = () => {
   });
   const [users, setUsers] = useState<UserData[]>([]);
   const [activities, setActivities] = useState<ActivityLog[]>([]);
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'activity' | 'charts' | 'moderation'>('overview');
+  const initialTab = searchParams.get('tab') as any || 'overview';
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'activity' | 'charts' | 'moderation' | 'blocked'>(initialTab);
 
   useEffect(() => {
     checkAdminStatus();
@@ -172,18 +175,25 @@ const Admin = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6 overflow-x-auto">
-        {['overview', 'charts', 'users', 'activity', 'moderation'].map((tab) => (
+      <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
+        {[
+          { id: 'overview', label: '📊 Geral' },
+          { id: 'charts', label: '📈 Gráficos' },
+          { id: 'moderation', label: '🚩 Denúncias' },
+          { id: 'blocked', label: '🚫 Bloqueios' },
+          { id: 'users', label: '👥 Usuários' },
+          { id: 'activity', label: '📋 Atividade' },
+        ].map((tab) => (
           <button
-            key={tab}
-            onClick={() => setActiveTab(tab as any)}
-            className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${
-              activeTab === tab
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
+            className={`px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+              activeTab === tab.id
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-card border border-border text-muted-foreground hover:bg-muted'
             }`}
           >
-            {tab === 'overview' ? '📊 Visão Geral' : tab === 'charts' ? '📈 Gráficos' : tab === 'users' ? '👥 Usuários' : tab === 'activity' ? '📋 Atividades' : '🚩 Moderação'}
+            {tab.label}
           </button>
         ))}
       </div>
@@ -292,6 +302,9 @@ const Admin = () => {
 
       {/* Moderation Tab */}
       {activeTab === 'moderation' && <ContentModeration />}
+
+      {/* Blocked Users Tab */}
+      {activeTab === 'blocked' && <BlockedUsersManager />}
     </div>
   );
 };

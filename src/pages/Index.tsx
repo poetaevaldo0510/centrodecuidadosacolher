@@ -77,7 +77,7 @@ const Index = () => {
   ];
 
   return (
-    <div className="h-screen bg-background flex flex-col font-sans max-w-md mx-auto shadow-2xl overflow-hidden relative border-x border-border">
+    <div className="h-screen bg-background flex flex-col font-sans w-full max-w-lg mx-auto shadow-2xl overflow-hidden relative border-x border-border">
       <WelcomeScreen show={showWelcome} />
       {showOnboarding && (
         <OnboardingTutorial onComplete={() => setShowOnboarding(false)} />
@@ -85,7 +85,7 @@ const Index = () => {
       <RewardToast />
       <ModalsContainer />
       
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
         {activeTab === 'home' && <SmartHome />}
         {activeTab === 'resources' && <ResourcesLibrary />}
         {activeTab === 'gallery' && <PhotoGallery />}
@@ -96,8 +96,8 @@ const Index = () => {
         {activeTab === 'profile' && <ProfileView />}
       </div>
 
-      {/* Bottom Navigation */}
-      <nav className="bg-card border-t border-border px-2 py-3 flex justify-around items-center shadow-xl z-20">
+      {/* Bottom Navigation - Otimizada para mobile */}
+      <nav className="bg-card border-t border-border px-1 py-2 flex justify-around items-center shadow-xl z-20 safe-area-pb">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -105,14 +105,14 @@ const Index = () => {
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${
+              className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all min-w-0 flex-1 ${
                 isActive
-                  ? 'bg-primary text-primary-foreground scale-105'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:text-foreground active:bg-muted'
               }`}
             >
-              <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-              <span className="text-[10px] font-bold">{item.label}</span>
+              <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
+              <span className="text-[9px] font-semibold truncate">{item.label}</span>
             </button>
           );
         })}
