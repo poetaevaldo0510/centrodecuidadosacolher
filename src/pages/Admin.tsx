@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Users, Activity, TrendingUp, Calendar, MessageSquare, ShoppingBag, ChevronLeft, Shield, Clock, Eye } from 'lucide-react';
+import { Users, Activity, TrendingUp, Calendar, MessageSquare, ShoppingBag, ChevronLeft, Shield, Clock, Eye, Flag } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import AdminCharts from '@/components/AdminCharts';
+import ContentModeration from '@/components/ContentModeration';
 
 interface Stats {
   totalUsers: number;
@@ -46,7 +47,7 @@ const Admin = () => {
   });
   const [users, setUsers] = useState<UserData[]>([]);
   const [activities, setActivities] = useState<ActivityLog[]>([]);
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'activity' | 'charts'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'activity' | 'charts' | 'moderation'>('overview');
 
   useEffect(() => {
     checkAdminStatus();
@@ -172,7 +173,7 @@ const Admin = () => {
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6 overflow-x-auto">
-        {['overview', 'charts', 'users', 'activity'].map((tab) => (
+        {['overview', 'charts', 'users', 'activity', 'moderation'].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab as any)}
@@ -182,7 +183,7 @@ const Admin = () => {
                 : 'bg-card border border-border text-muted-foreground hover:bg-muted'
             }`}
           >
-            {tab === 'overview' ? '📊 Visão Geral' : tab === 'charts' ? '📈 Gráficos' : tab === 'users' ? '👥 Usuários' : '📋 Atividades'}
+            {tab === 'overview' ? '📊 Visão Geral' : tab === 'charts' ? '📈 Gráficos' : tab === 'users' ? '👥 Usuários' : tab === 'activity' ? '📋 Atividades' : '🚩 Moderação'}
           </button>
         ))}
       </div>
@@ -288,6 +289,9 @@ const Admin = () => {
           </div>
         </div>
       )}
+
+      {/* Moderation Tab */}
+      {activeTab === 'moderation' && <ContentModeration />}
     </div>
   );
 };

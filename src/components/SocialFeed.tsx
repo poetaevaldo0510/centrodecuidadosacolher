@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Heart, MessageCircle, Send, Users, Sparkles, Plus, ChevronDown, ChevronUp, Search, Filter } from 'lucide-react';
+import { Heart, MessageCircle, Send, Users, Sparkles, Plus, ChevronDown, ChevronUp, Search, Flag, MoreVertical } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -7,6 +7,13 @@ import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { Input } from './ui/input';
 import FeedComments from './FeedComments';
+import ReportContentModal from './modals/ReportContentModal';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 
 interface FeedPost {
   id: string;
@@ -37,6 +44,7 @@ const SocialFeed = () => {
   const [posting, setPosting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'recent' | 'popular'>('recent');
+  const [reportModal, setReportModal] = useState<{ isOpen: boolean; postId: string }>({ isOpen: false, postId: '' });
 
   useEffect(() => {
     loadPosts();
@@ -285,6 +293,24 @@ const SocialFeed = () => {
                   {post.achievement_type === 'share' ? '💬 Experiência' : '🏆 Conquista'}
                 </span>
               )}
+              {user && post.user_id !== user.id && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="p-1 rounded-lg hover:bg-muted transition-colors">
+                      <MoreVertical size={16} className="text-muted-foreground" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={() => setReportModal({ isOpen: true, postId: post.id })}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Flag size={14} className="mr-2" />
+                      Denunciar
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
             
             <p className="text-sm text-foreground leading-relaxed mb-4">{post.content}</p>
@@ -331,6 +357,14 @@ const SocialFeed = () => {
           </div>
         )}
       </div>
+
+      {/* Report Modal */}
+      <ReportContentModal
+        isOpen={reportModal.isOpen}
+        onClose={() => setReportModal({ isOpen: false, postId: '' })}
+        contentId={reportModal.postId}
+        contentType="post"
+      />
     </div>
   );
 };
