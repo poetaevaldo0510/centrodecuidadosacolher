@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ShoppingBag, Search, Plus, MessageCircle, Heart, Eye } from 'lucide-react';
+import { ShoppingBag, Search, Plus, MessageCircle, Heart, Star } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -18,22 +18,50 @@ interface MarketItem {
     display_name: string | null;
     avatar_url?: string | null;
   } | null;
+  avg_rating?: number;
+  review_count?: number;
 }
 
 const MarketHub = () => {
-  const { setActiveModal, triggerReward } = useAppStore();
+  const { setActiveModal } = useAppStore();
   const [marketplaceItems, setMarketplaceItems] = useState<MarketItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<MarketItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [priceFilter, setPriceFilter] = useState<'all' | 'low' | 'medium' | 'high'>('all');
   const [sortBy, setSortBy] = useState<'recent' | 'price_low' | 'price_high'>('recent');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedProduct, setSelectedProduct] = useState<MarketItem | null>(null);
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchMarketplaceItems();
+    fetchCurrentUser();
   }, []);
+
+  useEffect(() => {
+    if (currentUserId) {
+      fetchFavorites();
+    }
+  }, [currentUserId]);
+
+  const fetchCurrentUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setCurrentUserId(user?.id || null);
+  };
+
+  const fetchFavorites = async () => {
+    if (!currentUserId) return;
+    
+    const { data } = await supabase
+      .from('product_favorites')
+      .select('product_id')
+      .eq('user_id', currentUserId);
+    
+    if (data) {
+      setFavorites(new Set(data.map(f => f.product_id)));
+    }
+  };
 
   const fetchMarketplaceItems = async () => {
     try {
@@ -49,12 +77,67 @@ const MarketHub = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setMarketplaceItems(data || []);
-      setFilteredItems(data || []);
+      
+      // Fetch ratings for each item
+      const itemsWithRatings = await Promise.all(
+        (data || []).map(async (item) => {
+          const { data: reviews } = await supabase
+            .from('product_reviews')
+            .select('rating')
+            .eq('product_id', item.id);
+          
+          const reviewCount = reviews?.length || 0;
+          const avgRating = reviewCount > 0 
+            ? reviews!.reduce((sum, r) => sum + r.rating, 0) / reviewCount 
+            : 0;
+          
+          return { ...item, avg_rating: avgRating, review_count: reviewCount };
+        })
+      );
+      
+      setMarketplaceItems(itemsWithRatings);
+      setFilteredItems(itemsWithRatings);
     } catch (error: any) {
       toast.error('Erro ao carregar produtos');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const toggleFavorite = async (e: React.MouseEvent, productId: string) => {
+    e.stopPropagation();
+    
+    if (!currentUserId) {
+      toast.error('Faça login para favoritar');
+      return;
+    }
+    
+    const isFav = favorites.has(productId);
+    
+    try {
+      if (isFav) {
+        await supabase
+          .from('product_favorites')
+          .delete()
+          .eq('product_id', productId)
+          .eq('user_id', currentUserId);
+        
+        setFavorites(prev => {
+          const next = new Set(prev);
+          next.delete(productId);
+          return next;
+        });
+        toast.success('Removido dos favoritos');
+      } else {
+        await supabase
+          .from('product_favorites')
+          .insert({ product_id: productId, user_id: currentUserId });
+        
+        setFavorites(prev => new Set(prev).add(productId));
+        toast.success('Adicionado aos favoritos!');
+      }
+    } catch {
+      toast.error('Erro ao atualizar favoritos');
     }
   };
 
@@ -227,20 +310,24 @@ const MarketHub = () => {
                       Destaque
                     </span>
                   )}
-                  {/* Quick action button */}
+                  {/* Favorite button */}
                   <button
-                    className="absolute top-2 right-2 p-1.5 bg-card/90 backdrop-blur-sm rounded-full shadow-sm hover:bg-card transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      triggerReward("Adicionado aos favoritos!", 2);
-                    }}
+                    className={`absolute top-2 right-2 p-1.5 rounded-full shadow-sm transition-colors ${
+                      favorites.has(item.id)
+                        ? 'bg-destructive/20 text-destructive'
+                        : 'bg-card/90 backdrop-blur-sm hover:bg-card text-muted-foreground'
+                    }`}
+                    onClick={(e) => toggleFavorite(e, item.id)}
                   >
-                    <Heart size={14} className="text-muted-foreground" />
+                    <Heart size={14} fill={favorites.has(item.id) ? 'currentColor' : 'none'} />
                   </button>
-                  {/* View indicator */}
-                  <div className="absolute bottom-2 right-2 p-1.5 bg-card/80 backdrop-blur-sm rounded-full">
-                    <Eye size={12} className="text-muted-foreground" />
-                  </div>
+                  {/* Rating indicator */}
+                  {item.review_count && item.review_count > 0 && (
+                    <div className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-card/80 backdrop-blur-sm rounded-full flex items-center gap-0.5">
+                      <Star size={10} className="text-warning fill-warning" />
+                      <span className="text-[10px] font-medium text-foreground">{item.avg_rating?.toFixed(1)}</span>
+                    </div>
+                  )}
                 </div>
                 
                 {/* Info do produto */}
