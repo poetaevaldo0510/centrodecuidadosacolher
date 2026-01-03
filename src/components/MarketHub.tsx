@@ -4,6 +4,7 @@ import { useAppStore } from '@/lib/store';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from './ui/button';
+import ProductDetailModal from './modals/ProductDetailModal';
 
 interface MarketItem {
   id: string;
@@ -15,6 +16,7 @@ interface MarketItem {
   featured: boolean | null;
   profiles: {
     display_name: string | null;
+    avatar_url?: string | null;
   } | null;
 }
 
@@ -27,6 +29,7 @@ const MarketHub = () => {
   const [priceFilter, setPriceFilter] = useState<'all' | 'low' | 'medium' | 'high'>('all');
   const [sortBy, setSortBy] = useState<'recent' | 'price_low' | 'price_high'>('recent');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [selectedProduct, setSelectedProduct] = useState<MarketItem | null>(null);
 
   useEffect(() => {
     fetchMarketplaceItems();
@@ -39,7 +42,8 @@ const MarketHub = () => {
         .select(`
           *,
           profiles (
-            display_name
+            display_name,
+            avatar_url
           )
         `)
         .order('created_at', { ascending: false });
@@ -202,7 +206,8 @@ const MarketHub = () => {
             {filteredItems.map((item) => (
               <div
                 key={item.id}
-                className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => setSelectedProduct(item)}
               >
                 {/* Imagem do produto */}
                 <div className="aspect-square relative bg-muted">
@@ -225,10 +230,17 @@ const MarketHub = () => {
                   {/* Quick action button */}
                   <button
                     className="absolute top-2 right-2 p-1.5 bg-card/90 backdrop-blur-sm rounded-full shadow-sm hover:bg-card transition-colors"
-                    onClick={() => triggerReward("Adicionado aos favoritos!", 2)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      triggerReward("Adicionado aos favoritos!", 2);
+                    }}
                   >
                     <Heart size={14} className="text-muted-foreground" />
                   </button>
+                  {/* View indicator */}
+                  <div className="absolute bottom-2 right-2 p-1.5 bg-card/80 backdrop-blur-sm rounded-full">
+                    <Eye size={12} className="text-muted-foreground" />
+                  </div>
                 </div>
                 
                 {/* Info do produto */}
@@ -249,9 +261,9 @@ const MarketHub = () => {
                     )}
                     <button
                       className="p-1.5 bg-success/10 hover:bg-success/20 rounded-lg transition-colors"
-                      onClick={() => {
-                        triggerReward("Interesse registrado!", 5);
-                        toast.success('Vendedor notificado!');
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedProduct(item);
                       }}
                     >
                       <MessageCircle size={14} className="text-success" />
@@ -263,6 +275,14 @@ const MarketHub = () => {
           </div>
         )}
       </div>
+
+      {/* Product Detail Modal */}
+      {selectedProduct && (
+        <ProductDetailModal
+          product={selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+        />
+      )}
     </div>
   );
 };
