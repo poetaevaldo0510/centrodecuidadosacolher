@@ -1,9 +1,27 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, ChevronLeft, ChevronRight, MessageCircle, Heart, Share2, User, Send, ArrowLeft } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MessageCircle, Heart, Share2, User, Send, ArrowLeft, Star, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useRealtimeChat } from '@/hooks/useRealtimeChat';
 import { toast } from 'sonner';
+
+interface ProductImage {
+  id: string;
+  image_url: string;
+  display_order: number;
+}
+
+interface ProductReview {
+  id: string;
+  user_id: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+  profiles?: {
+    display_name: string | null;
+    avatar_url: string | null;
+  } | null;
+}
 
 interface ProductDetailModalProps {
   product: {
@@ -23,17 +41,22 @@ interface ProductDetailModalProps {
 }
 
 const ProductDetailModal = ({ product, onClose }: ProductDetailModalProps) => {
-  const [activeTab, setActiveTab] = useState<'details' | 'chat'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'chat' | 'reviews'>('details');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
   const [messageInput, setMessageInput] = useState('');
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [productImages, setProductImages] = useState<ProductImage[]>([]);
+  const [reviews, setReviews] = useState<ProductReview[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [newRating, setNewRating] = useState(5);
+  const [newComment, setNewComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [userReview, setUserReview] = useState<ProductReview | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   
   const { messages, loading: chatLoading, sending, sendMessage } = useRealtimeChat(product?.user_id || null);
-
-  // Mock gallery - in real app, this would come from a product_images table
-  const images = product?.image_url ? [product.image_url] : [];
 
   useEffect(() => {
     const getUser = async () => {
@@ -44,12 +67,195 @@ const ProductDetailModal = ({ product, onClose }: ProductDetailModalProps) => {
   }, []);
 
   useEffect(() => {
+    if (product?.id) {
+      fetchProductImages();
+      fetchReviews();
+      if (currentUserId) {
+        checkFavoriteStatus();
+      }
+    }
+  }, [product?.id, currentUserId]);
+
+  useEffect(() => {
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
 
+  const fetchProductImages = async () => {
+    if (!product?.id) return;
+    
+    const { data } = await supabase
+      .from('product_images')
+      .select('*')
+      .eq('product_id', product.id)
+      .order('display_order', { ascending: true });
+    
+    if (data && data.length > 0) {
+      setProductImages(data);
+    } else if (product.image_url) {
+      setProductImages([{ id: 'main', image_url: product.image_url, display_order: 0 }]);
+    }
+  };
+
+  const fetchReviews = async () => {
+    if (!product?.id) return;
+    setReviewsLoading(true);
+    
+    const { data, error } = await supabase
+      .from('product_reviews')
+      .select('*')
+      .eq('product_id', product.id)
+      .order('created_at', { ascending: false });
+    
+    if (!error && data) {
+      // Fetch profiles for each review
+      const reviewsWithProfiles = await Promise.all(
+        data.map(async (review) => {
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('display_name, avatar_url')
+            .eq('id', review.user_id)
+            .single();
+          return { ...review, profiles: profileData };
+        })
+      );
+      
+      setReviews(reviewsWithProfiles);
+      
+      // Check if current user has a review
+      if (currentUserId) {
+        const existing = reviewsWithProfiles.find(r => r.user_id === currentUserId);
+        if (existing) {
+          setUserReview(existing);
+          setNewRating(existing.rating);
+          setNewComment(existing.comment || '');
+        }
+      }
+    }
+    setReviewsLoading(false);
+  };
+
+  const checkFavoriteStatus = async () => {
+    if (!product?.id || !currentUserId) return;
+    
+    const { data } = await supabase
+      .from('product_favorites')
+      .select('id')
+      .eq('product_id', product.id)
+      .eq('user_id', currentUserId)
+      .maybeSingle();
+    
+    setIsFavorite(!!data);
+  };
+
+  const toggleFavorite = async () => {
+    if (!currentUserId) {
+      toast.error('Faça login para favoritar');
+      return;
+    }
+    if (!product?.id) return;
+    
+    setFavoriteLoading(true);
+    
+    try {
+      if (isFavorite) {
+        await supabase
+          .from('product_favorites')
+          .delete()
+          .eq('product_id', product.id)
+          .eq('user_id', currentUserId);
+        setIsFavorite(false);
+        toast.success('Removido dos favoritos');
+      } else {
+        await supabase
+          .from('product_favorites')
+          .insert({ product_id: product.id, user_id: currentUserId });
+        setIsFavorite(true);
+        toast.success('Adicionado aos favoritos!');
+      }
+    } catch {
+      toast.error('Erro ao atualizar favoritos');
+    } finally {
+      setFavoriteLoading(false);
+    }
+  };
+
+  const submitReview = async () => {
+    if (!currentUserId) {
+      toast.error('Faça login para avaliar');
+      return;
+    }
+    if (!product?.id) return;
+    
+    if (currentUserId === product.user_id) {
+      toast.error('Você não pode avaliar seu próprio produto');
+      return;
+    }
+    
+    setSubmittingReview(true);
+    
+    try {
+      if (userReview) {
+        // Update existing review
+        const { error } = await supabase
+          .from('product_reviews')
+          .update({ rating: newRating, comment: newComment || null })
+          .eq('id', userReview.id);
+        
+        if (error) throw error;
+        toast.success('Avaliação atualizada!');
+      } else {
+        // Create new review
+        const { error } = await supabase
+          .from('product_reviews')
+          .insert({
+            product_id: product.id,
+            user_id: currentUserId,
+            rating: newRating,
+            comment: newComment || null,
+          });
+        
+        if (error) throw error;
+        toast.success('Avaliação enviada!');
+      }
+      
+      fetchReviews();
+    } catch {
+      toast.error('Erro ao enviar avaliação');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  const deleteReview = async () => {
+    if (!userReview) return;
+    
+    try {
+      await supabase
+        .from('product_reviews')
+        .delete()
+        .eq('id', userReview.id);
+      
+      setUserReview(null);
+      setNewRating(5);
+      setNewComment('');
+      toast.success('Avaliação removida');
+      fetchReviews();
+    } catch {
+      toast.error('Erro ao remover avaliação');
+    }
+  };
+
   if (!product) return null;
+
+  const images = productImages.length > 0 
+    ? productImages.map(img => img.image_url) 
+    : product.image_url ? [product.image_url] : [];
+
+  const averageRating = reviews.length > 0 
+    ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length 
+    : 0;
 
   const handleNextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % Math.max(images.length, 1));
@@ -112,6 +318,27 @@ const ProductDetailModal = ({ product, onClose }: ProductDetailModalProps) => {
     return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
   };
 
+  const renderStars = (rating: number, interactive: boolean = false, onSelect?: (r: number) => void) => {
+    return (
+      <div className="flex gap-0.5">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            type="button"
+            disabled={!interactive}
+            onClick={() => interactive && onSelect?.(star)}
+            className={`${interactive ? 'cursor-pointer hover:scale-110 transition-transform' : 'cursor-default'}`}
+          >
+            <Star
+              size={interactive ? 24 : 14}
+              className={star <= rating ? 'text-warning fill-warning' : 'text-muted-foreground'}
+            />
+          </button>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
       <div className="bg-card w-full h-[95vh] sm:h-auto sm:max-h-[90vh] sm:max-w-lg sm:rounded-2xl overflow-hidden flex flex-col animate-slide-up shadow-2xl">
@@ -125,7 +352,8 @@ const ProductDetailModal = ({ product, onClose }: ProductDetailModalProps) => {
           </button>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setIsFavorite(!isFavorite)}
+              onClick={toggleFavorite}
+              disabled={favoriteLoading}
               className={`p-2 rounded-full transition-colors ${
                 isFavorite ? 'bg-destructive/10 text-destructive' : 'hover:bg-muted text-muted-foreground'
               }`}
@@ -154,15 +382,26 @@ const ProductDetailModal = ({ product, onClose }: ProductDetailModalProps) => {
             Detalhes
           </button>
           <button
+            onClick={() => setActiveTab('reviews')}
+            className={`flex-1 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-1 ${
+              activeTab === 'reviews'
+                ? 'text-primary border-b-2 border-primary'
+                : 'text-muted-foreground'
+            }`}
+          >
+            <Star size={14} />
+            Avaliações ({reviews.length})
+          </button>
+          <button
             onClick={() => setActiveTab('chat')}
-            className={`flex-1 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+            className={`flex-1 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-1 ${
               activeTab === 'chat'
                 ? 'text-primary border-b-2 border-primary'
                 : 'text-muted-foreground'
             }`}
           >
-            <MessageCircle size={16} />
-            Chat com Vendedor
+            <MessageCircle size={14} />
+            Chat
           </button>
         </div>
 
@@ -207,6 +446,27 @@ const ProductDetailModal = ({ product, onClose }: ProductDetailModalProps) => {
                         </div>
                       </>
                     )}
+                    {/* Thumbnail strip */}
+                    {images.length > 1 && (
+                      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex gap-2 bg-card/80 backdrop-blur-sm p-2 rounded-xl">
+                        {images.slice(0, 5).map((img, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => setCurrentImageIndex(idx)}
+                            className={`w-10 h-10 rounded-lg overflow-hidden border-2 transition-colors ${
+                              idx === currentImageIndex ? 'border-primary' : 'border-transparent'
+                            }`}
+                          >
+                            <img src={img} alt="" className="w-full h-full object-cover" />
+                          </button>
+                        ))}
+                        {images.length > 5 && (
+                          <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-xs font-medium text-muted-foreground">
+                            +{images.length - 5}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
@@ -229,7 +489,18 @@ const ProductDetailModal = ({ product, onClose }: ProductDetailModalProps) => {
               {/* Product Info */}
               <div className="p-4 space-y-4">
                 <div>
-                  <h2 className="text-xl font-bold text-foreground mb-1">{product.title}</h2>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h2 className="text-xl font-bold text-foreground">{product.title}</h2>
+                  </div>
+                  {/* Rating summary */}
+                  {reviews.length > 0 && (
+                    <div className="flex items-center gap-2 mb-2">
+                      {renderStars(Math.round(averageRating))}
+                      <span className="text-sm text-muted-foreground">
+                        {averageRating.toFixed(1)} ({reviews.length} avaliação{reviews.length !== 1 ? 'ões' : ''})
+                      </span>
+                    </div>
+                  )}
                   {product.price ? (
                     <p className="text-2xl font-bold text-success">
                       R$ {product.price.toFixed(2)}
@@ -241,12 +512,12 @@ const ProductDetailModal = ({ product, onClose }: ProductDetailModalProps) => {
 
                 {/* Seller Info */}
                 <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-xl">
-                  <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
                     {product.profiles?.avatar_url ? (
                       <img
                         src={product.profiles.avatar_url}
                         alt="Vendedor"
-                        className="w-full h-full rounded-full object-cover"
+                        className="w-full h-full object-cover"
                       />
                     ) : (
                       <User size={20} className="text-primary" />
@@ -279,18 +550,118 @@ const ProductDetailModal = ({ product, onClose }: ProductDetailModalProps) => {
                 )}
               </div>
             </div>
+          ) : activeTab === 'reviews' ? (
+            // Reviews Tab
+            <div className="p-4 space-y-4">
+              {/* Review Form */}
+              {currentUserId && currentUserId !== product.user_id && (
+                <div className="bg-muted/50 rounded-xl p-4 space-y-3">
+                  <h3 className="font-semibold text-foreground">
+                    {userReview ? 'Editar sua avaliação' : 'Deixe sua avaliação'}
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Nota:</span>
+                    {renderStars(newRating, true, setNewRating)}
+                    <span className="text-sm font-medium text-foreground ml-2">{newRating}/5</span>
+                  </div>
+                  <textarea
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="Escreva seu comentário (opcional)..."
+                    className="w-full px-3 py-2 bg-background border border-border rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+                    rows={3}
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={submitReview}
+                      disabled={submittingReview}
+                      className="flex-1 bg-primary hover:bg-primary/90 rounded-xl"
+                    >
+                      {submittingReview ? 'Enviando...' : userReview ? 'Atualizar' : 'Enviar'}
+                    </Button>
+                    {userReview && (
+                      <Button
+                        variant="outline"
+                        onClick={deleteReview}
+                        className="rounded-xl text-destructive border-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Reviews List */}
+              {reviewsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              ) : reviews.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <Star className="text-muted-foreground" size={28} />
+                  </div>
+                  <p className="text-foreground font-medium mb-1">Sem avaliações</p>
+                  <p className="text-xs text-muted-foreground">
+                    Seja o primeiro a avaliar este produto!
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {reviews.map((review) => (
+                    <div key={review.id} className="bg-card border border-border rounded-xl p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden flex-shrink-0">
+                          {review.profiles?.avatar_url ? (
+                            <img
+                              src={review.profiles.avatar_url}
+                              alt=""
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <User size={16} className="text-primary" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="font-semibold text-foreground text-sm truncate">
+                              {review.profiles?.display_name || 'Usuário'}
+                              {review.user_id === currentUserId && (
+                                <span className="text-xs text-primary ml-2">(você)</span>
+                              )}
+                            </p>
+                            <span className="text-xs text-muted-foreground flex-shrink-0">
+                              {formatDate(review.created_at)}
+                            </span>
+                          </div>
+                          <div className="mt-1">
+                            {renderStars(review.rating)}
+                          </div>
+                          {review.comment && (
+                            <p className="text-sm text-muted-foreground mt-2">
+                              {review.comment}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           ) : (
             // Chat Tab
             <div className="flex flex-col h-full min-h-[400px]">
               {/* Seller Header in Chat */}
               <div className="p-3 border-b border-border bg-muted/30">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
                     {product.profiles?.avatar_url ? (
                       <img
                         src={product.profiles.avatar_url}
                         alt="Vendedor"
-                        className="w-full h-full rounded-full object-cover"
+                        className="w-full h-full object-cover"
                       />
                     ) : (
                       <User size={18} className="text-primary" />
