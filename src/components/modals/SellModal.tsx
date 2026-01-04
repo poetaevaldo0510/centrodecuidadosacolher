@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Image as ImageIcon } from 'lucide-react';
+import { X, Image as ImageIcon, Tag, DollarSign, FileText, Sparkles } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -7,36 +7,69 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import UploadImageModal from './UploadImageModal';
+import MultiImageUploader from '@/components/marketplace/MultiImageUploader';
+
+interface ImageItem {
+  id: string;
+  url: string;
+  order: number;
+}
 
 const SellModal = () => {
   const { setActiveModal, triggerReward } = useAppStore();
-  const [imageUrl, setImageUrl] = useState<string>('');
-  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [images, setImages] = useState<ImageItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [price, setPrice] = useState('');
 
   const handleSellProduct = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    if (!title.trim()) {
+      toast.error('Digite o título do produto');
+      return;
+    }
+    
+    if (!price || parseFloat(price) <= 0) {
+      toast.error('Digite um preço válido');
+      return;
+    }
+
     setLoading(true);
 
-    const formData = new FormData(e.currentTarget);
-    
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
-      const { error } = await supabase
+      // Insert product
+      const { data: product, error } = await supabase
         .from('marketplace_items')
         .insert({
           user_id: user.id,
-          title: formData.get('title') as string,
-          description: formData.get('description') as string,
-          price: parseFloat(formData.get('price') as string),
-          image_url: imageUrl || null,
+          title: title.trim(),
+          description: description.trim() || null,
+          price: parseFloat(price),
+          image_url: images.length > 0 ? images[0].url : null,
           featured: false
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
+
+      // Insert additional images
+      if (images.length > 1 && product) {
+        const imageRecords = images.map((img, index) => ({
+          product_id: product.id,
+          image_url: img.url,
+          display_order: index
+        }));
+
+        await supabase
+          .from('product_images')
+          .insert(imageRecords);
+      }
 
       setActiveModal(null);
       triggerReward("Produto anunciado com sucesso!", 50);
@@ -49,96 +82,124 @@ const SellModal = () => {
   };
 
   return (
-    <>
-      <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-4 animate-slide-in-from-bottom">
-        <div className="bg-card w-full max-w-md rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-bold text-xl text-foreground">Anunciar Produto</h3>
-            <button onClick={() => setActiveModal(null)}>
-              <X />
-            </button>
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in">
+      <div className="bg-card w-full sm:max-w-lg sm:rounded-3xl rounded-t-3xl max-h-[90vh] overflow-hidden shadow-2xl">
+        {/* Header */}
+        <div className="sticky top-0 bg-gradient-to-br from-success/15 via-success/5 to-card px-5 py-4 border-b border-border/50 flex justify-between items-center z-10">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-br from-success to-success/70 rounded-xl shadow-lg shadow-success/20">
+              <Tag className="text-success-foreground" size={20} />
+            </div>
+            <div>
+              <h3 className="font-bold text-lg text-foreground">Novo Anúncio</h3>
+              <p className="text-xs text-muted-foreground">Venda seu produto</p>
+            </div>
           </div>
-          
-          <form onSubmit={handleSellProduct} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Título do Produto</Label>
-              <Input
-                id="title"
-                name="title"
-                required
-                placeholder="Ex: Kit de materiais adaptados"
-              />
-            </div>
+          <button 
+            onClick={() => setActiveModal(null)}
+            className="p-2 hover:bg-muted rounded-xl transition-colors"
+          >
+            <X size={20} className="text-muted-foreground" />
+          </button>
+        </div>
+        
+        <form onSubmit={handleSellProduct} className="p-5 space-y-5 overflow-y-auto max-h-[calc(90vh-80px)]">
+          {/* Images */}
+          <MultiImageUploader
+            images={images}
+            onImagesChange={setImages}
+            maxImages={5}
+          />
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Descrição</Label>
-              <Textarea
-                id="description"
-                name="description"
-                placeholder="Descreva seu produto..."
-                rows={3}
-              />
-            </div>
+          {/* Title */}
+          <div className="space-y-2">
+            <Label htmlFor="title" className="text-sm font-medium flex items-center gap-2">
+              <FileText size={14} className="text-muted-foreground" />
+              Título do Produto
+            </Label>
+            <Input
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+              placeholder="Ex: Kit de materiais adaptados"
+              className="rounded-xl border-border/50 focus:border-success/50 focus:ring-success/30"
+            />
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="price">Preço (R$)</Label>
+          {/* Description */}
+          <div className="space-y-2">
+            <Label htmlFor="description" className="text-sm font-medium flex items-center gap-2">
+              <FileText size={14} className="text-muted-foreground" />
+              Descrição
+              <span className="text-xs text-muted-foreground font-normal">(opcional)</span>
+            </Label>
+            <Textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Descreva seu produto em detalhes..."
+              rows={3}
+              className="rounded-xl border-border/50 focus:border-success/50 focus:ring-success/30 resize-none"
+            />
+          </div>
+
+          {/* Price */}
+          <div className="space-y-2">
+            <Label htmlFor="price" className="text-sm font-medium flex items-center gap-2">
+              <DollarSign size={14} className="text-muted-foreground" />
+              Preço
+            </Label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">R$</span>
               <Input
                 id="price"
-                name="price"
                 type="number"
                 step="0.01"
+                min="0"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
                 required
-                placeholder="0.00"
+                placeholder="0,00"
+                className="pl-12 rounded-xl border-border/50 focus:border-success/50 focus:ring-success/30"
               />
             </div>
+          </div>
 
-            <div className="space-y-2">
-              <Label>Imagem do Produto</Label>
-              {imageUrl ? (
-                <div className="relative">
-                  <img 
-                    src={imageUrl} 
-                    alt="Preview" 
-                    className="w-full h-48 object-cover rounded-lg"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setImageUrl('')}
-                    className="absolute top-2 right-2 bg-destructive text-destructive-foreground p-2 rounded-full"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-              ) : (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowUploadModal(true)}
-                  className="w-full"
-                >
-                  <ImageIcon className="mr-2 h-4 w-4" />
-                  Adicionar Imagem
-                </Button>
-              )}
+          {/* Tips */}
+          <div className="bg-muted/30 rounded-2xl p-4 border border-border/30">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles size={14} className="text-warning" />
+              <span className="text-xs font-semibold text-foreground">Dicas para vender mais</span>
             </div>
+            <ul className="text-xs text-muted-foreground space-y-1">
+              <li>• Adicione fotos claras e de boa qualidade</li>
+              <li>• Escreva uma descrição detalhada</li>
+              <li>• Defina um preço justo e competitivo</li>
+            </ul>
+          </div>
 
-            <Button
-              type="submit"
-              className="w-full bg-success text-success-foreground hover:bg-success/90"
-              disabled={loading}
-            >
-              {loading ? 'Publicando...' : 'Publicar Produto'}
-            </Button>
-          </form>
-        </div>
+          {/* Submit */}
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-success-foreground rounded-xl py-6 text-base font-semibold shadow-lg shadow-success/20 transition-all"
+          >
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 border-2 border-success-foreground border-t-transparent rounded-full animate-spin" />
+                Publicando...
+              </div>
+            ) : (
+              <>
+                <Tag size={18} className="mr-2" />
+                Publicar Produto
+              </>
+            )}
+          </Button>
+        </form>
       </div>
-
-      <UploadImageModal
-        open={showUploadModal}
-        onClose={() => setShowUploadModal(false)}
-        onImageUploaded={setImageUrl}
-      />
-    </>
+    </div>
   );
 };
 
