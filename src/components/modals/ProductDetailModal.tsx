@@ -217,6 +217,18 @@ const ProductDetailModal = ({ product, onClose }: ProductDetailModalProps) => {
           });
         
         if (error) throw error;
+        
+        // Send notification to seller
+        if (product.user_id !== currentUserId) {
+          await supabase.from('notifications').insert({
+            user_id: product.user_id,
+            type: 'review',
+            title: 'Nova avaliação!',
+            message: `Seu produto "${product.title}" recebeu uma avaliação de ${newRating} estrelas`,
+            data: { product_id: product.id, rating: newRating }
+          });
+        }
+        
         toast.success('Avaliação enviada!');
       }
       
