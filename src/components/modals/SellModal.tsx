@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Image as ImageIcon, Tag, DollarSign, FileText, Sparkles } from 'lucide-react';
+import { X, Tag, DollarSign, FileText, Sparkles } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -7,7 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import MultiImageUploader from '@/components/marketplace/MultiImageUploader';
+import { PRODUCT_CATEGORIES } from '@/components/marketplace/CategoryFilter';
 
 interface ImageItem {
   id: string;
@@ -22,7 +24,7 @@ const SellModal = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
-
+  const [category, setCategory] = useState('outros');
   const handleSellProduct = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
@@ -51,6 +53,7 @@ const SellModal = () => {
           description: description.trim() || null,
           price: parseFloat(price),
           image_url: images.length > 0 ? images[0].url : null,
+          category: category,
           featured: false
         })
         .select()
@@ -142,6 +145,32 @@ const SellModal = () => {
               rows={3}
               className="rounded-xl border-border/50 focus:border-success/50 focus:ring-success/30 resize-none"
             />
+          </div>
+
+          {/* Category */}
+          <div className="space-y-2">
+            <Label htmlFor="category" className="text-sm font-medium flex items-center gap-2">
+              <Tag size={14} className="text-muted-foreground" />
+              Categoria
+            </Label>
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger className="rounded-xl border-border/50 focus:border-success/50 focus:ring-success/30">
+                <SelectValue placeholder="Selecione uma categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                {PRODUCT_CATEGORIES.map((cat) => {
+                  const Icon = cat.icon;
+                  return (
+                    <SelectItem key={cat.value} value={cat.value}>
+                      <div className="flex items-center gap-2">
+                        <Icon size={14} />
+                        {cat.label}
+                      </div>
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Price */}

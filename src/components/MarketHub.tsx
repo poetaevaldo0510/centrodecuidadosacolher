@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
-import { ShoppingBag, Search, Plus, MessageCircle, Heart, Star, Filter, TrendingUp, Sparkles, ChevronDown, Grid3X3, List, SlidersHorizontal } from 'lucide-react';
+import { ShoppingBag, Plus, Heart, Star, Sparkles, Grid3X3, List, User } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from './ui/button';
 import ProductDetailModal from './modals/ProductDetailModal';
 import FavoritesTab from './marketplace/FavoritesTab';
+import SellerProfile from './marketplace/SellerProfile';
+import AdvancedSearch from './marketplace/AdvancedSearch';
+import CategoryFilter, { PRODUCT_CATEGORIES } from './marketplace/CategoryFilter';
+import NotificationBell from './marketplace/NotificationBell';
 
 interface MarketItem {
   id: string;
@@ -15,6 +19,7 @@ interface MarketItem {
   image_url: string | null;
   user_id: string;
   featured: boolean | null;
+  category: string | null;
   profiles: {
     display_name: string | null;
     avatar_url?: string | null;
@@ -31,13 +36,14 @@ const MarketHub = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [priceFilter, setPriceFilter] = useState<'all' | 'low' | 'medium' | 'high'>('all');
   const [ratingFilter, setRatingFilter] = useState<'all' | '4+' | '3+' | 'any'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'recent' | 'price_low' | 'price_high' | 'rating'>('recent');
   const [selectedProduct, setSelectedProduct] = useState<MarketItem | null>(null);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [activeTab, setActiveTab] = useState<'browse' | 'favorites'>('browse');
+  const [selectedSeller, setSelectedSeller] = useState<{ id: string; name: string | null; avatar: string | null } | null>(null);
 
   useEffect(() => {
     fetchMarketplaceItems();
@@ -117,6 +123,7 @@ const MarketHub = () => {
     }
     
     const isFav = favorites.has(productId);
+    const product = marketplaceItems.find(p => p.id === productId);
     
     try {
       if (isFav) {
@@ -137,6 +144,17 @@ const MarketHub = () => {
           .from('product_favorites')
           .insert({ product_id: productId, user_id: currentUserId });
         
+        // Send notification to seller
+        if (product && product.user_id !== currentUserId) {
+          await supabase.from('notifications').insert({
+            user_id: product.user_id,
+            type: 'favorite',
+            title: 'Novo favorito!',
+            message: `Alguém favoritou seu produto "${product.title}"`,
+            data: { product_id: productId }
+          });
+        }
+        
         setFavorites(prev => new Set(prev).add(productId));
         toast.success('Adicionado aos favoritos!');
       }
@@ -155,6 +173,10 @@ const MarketHub = () => {
           item.title.toLowerCase().includes(query) ||
           item.description?.toLowerCase().includes(query)
       );
+    }
+
+    if (categoryFilter) {
+      filtered = filtered.filter(item => item.category === categoryFilter);
     }
 
     if (priceFilter !== 'all') {
@@ -185,32 +207,43 @@ const MarketHub = () => {
     }
 
     setFilteredItems(filtered);
-  }, [searchQuery, priceFilter, ratingFilter, sortBy, marketplaceItems]);
+  }, [searchQuery, categoryFilter, priceFilter, ratingFilter, sortBy, marketplaceItems]);
 
-  const priceFilters = [
-    { value: 'all', label: 'Todos' },
-    { value: 'low', label: '< R$50' },
-    { value: 'medium', label: 'R$50-150' },
-    { value: 'high', label: '> R$150' },
-  ];
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
 
-  const ratingFilters = [
-    { value: 'all', label: 'Qualquer' },
-    { value: '4+', label: '4+ ⭐' },
-    { value: '3+', label: '3+ ⭐' },
-    { value: 'any', label: 'Com avaliação' },
-  ];
+  const handleViewSeller = (e: React.MouseEvent, item: MarketItem) => {
+    e.stopPropagation();
+    setSelectedSeller({
+      id: item.user_id,
+      name: item.profiles?.display_name || null,
+      avatar: item.profiles?.avatar_url || null
+    });
+  };
 
-  const sortOptions = [
-    { value: 'recent', label: 'Recentes', icon: Sparkles },
-    { value: 'price_low', label: 'Menor preço', icon: TrendingUp },
-    { value: 'price_high', label: 'Maior preço', icon: TrendingUp },
-    { value: 'rating', label: 'Mais avaliados', icon: Star },
-  ];
+  const getCategoryLabel = (value: string | null) => {
+    const cat = PRODUCT_CATEGORIES.find(c => c.value === value);
+    return cat?.label || 'Outros';
+  };
 
   const featuredItems = filteredItems.filter(item => item.featured);
   const regularItems = filteredItems.filter(item => !item.featured);
 
+  // Seller Profile View
+  if (selectedSeller) {
+    return (
+      <SellerProfile
+        sellerId={selectedSeller.id}
+        sellerName={selectedSeller.name}
+        sellerAvatar={selectedSeller.avatar}
+        onClose={() => setSelectedSeller(null)}
+        onSelectProduct={(product) => setSelectedProduct(product)}
+      />
+    );
+  }
+
+  // Favorites Tab
   if (activeTab === 'favorites') {
     return (
       <div className="flex flex-col min-h-screen bg-background pb-24 animate-fade-in">
@@ -244,7 +277,8 @@ const MarketHub = () => {
               </p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            <NotificationBell userId={currentUserId} />
             <Button
               size="sm"
               variant="outline"
@@ -268,111 +302,27 @@ const MarketHub = () => {
           </div>
         </div>
         
-        {/* Premium Search */}
-        <div className="relative mb-4">
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
-            <Search className="text-muted-foreground" size={18} />
-          </div>
-          <input
-            type="text"
-            placeholder="Buscar produtos, categorias..."
+        {/* Advanced Search */}
+        <div className="mb-4">
+          <AdvancedSearch
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-12 py-3.5 bg-card/80 border border-border/50 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-success/30 focus:border-success/50 shadow-sm transition-all placeholder:text-muted-foreground/70"
+            onChange={setSearchQuery}
+            onSearch={handleSearch}
+            placeholder="Buscar produtos, categorias..."
           />
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-xl transition-colors ${
-              showFilters ? 'bg-success/20 text-success' : 'hover:bg-muted text-muted-foreground'
-            }`}
-          >
-            <SlidersHorizontal size={18} />
-          </button>
         </div>
 
-        {/* Expandable Filters */}
-        <div className={`overflow-hidden transition-all duration-300 ${showFilters ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
-          <div className="space-y-3 pb-3">
-            {/* Price Filter */}
-            <div>
-              <span className="text-xs font-medium text-muted-foreground mb-2 block">Preço</span>
-              <div className="flex gap-2 flex-wrap">
-                {priceFilters.map((filter) => (
-                  <button
-                    key={filter.value}
-                    onClick={() => setPriceFilter(filter.value as any)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
-                      priceFilter === filter.value
-                        ? 'bg-success text-success-foreground shadow-sm'
-                        : 'bg-muted/50 text-muted-foreground hover:bg-muted'
-                    }`}
-                  >
-                    {filter.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Rating Filter */}
-            <div>
-              <span className="text-xs font-medium text-muted-foreground mb-2 block">Avaliação</span>
-              <div className="flex gap-2 flex-wrap">
-                {ratingFilters.map((filter) => (
-                  <button
-                    key={filter.value}
-                    onClick={() => setRatingFilter(filter.value as any)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
-                      ratingFilter === filter.value
-                        ? 'bg-warning text-warning-foreground shadow-sm'
-                        : 'bg-muted/50 text-muted-foreground hover:bg-muted'
-                    }`}
-                  >
-                    {filter.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Sort */}
-            <div>
-              <span className="text-xs font-medium text-muted-foreground mb-2 block">Ordenar por</span>
-              <div className="flex gap-2 flex-wrap">
-                {sortOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => setSortBy(option.value as any)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all flex items-center gap-1 ${
-                      sortBy === option.value
-                        ? 'bg-primary text-primary-foreground shadow-sm'
-                        : 'bg-muted/50 text-muted-foreground hover:bg-muted'
-                    }`}
-                  >
-                    <option.icon size={12} />
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
+        {/* Category Filter */}
+        <div className="mb-3">
+          <CategoryFilter
+            selected={categoryFilter}
+            onChange={setCategoryFilter}
+          />
         </div>
         
-        {/* Quick filters bar */}
+        {/* Quick actions bar */}
         <div className="flex items-center justify-between">
           <div className="flex gap-1.5 overflow-x-auto scrollbar-hide flex-1">
-            {priceFilters.slice(1).map((filter) => (
-              <button
-                key={filter.value}
-                onClick={() => setPriceFilter(priceFilter === filter.value ? 'all' : filter.value as any)}
-                className={`px-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all flex-shrink-0 ${
-                  priceFilter === filter.value
-                    ? 'bg-success text-success-foreground'
-                    : 'bg-muted/60 text-muted-foreground hover:bg-muted'
-                }`}
-              >
-                {filter.label}
-              </button>
-            ))}
-            <div className="w-px bg-border/50 mx-1 flex-shrink-0" />
             <button
               onClick={() => setSortBy(sortBy === 'rating' ? 'recent' : 'rating')}
               className={`px-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all flex-shrink-0 flex items-center gap-1 ${
@@ -381,7 +331,27 @@ const MarketHub = () => {
                   : 'bg-muted/60 text-muted-foreground hover:bg-muted'
               }`}
             >
-              <Star size={10} /> Avaliados
+              <Star size={10} /> Melhor avaliados
+            </button>
+            <button
+              onClick={() => setSortBy(sortBy === 'price_low' ? 'recent' : 'price_low')}
+              className={`px-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all flex-shrink-0 ${
+                sortBy === 'price_low'
+                  ? 'bg-success text-success-foreground'
+                  : 'bg-muted/60 text-muted-foreground hover:bg-muted'
+              }`}
+            >
+              Menor preço
+            </button>
+            <button
+              onClick={() => setSortBy(sortBy === 'price_high' ? 'recent' : 'price_high')}
+              className={`px-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all flex-shrink-0 ${
+                sortBy === 'price_high'
+                  ? 'bg-success text-success-foreground'
+                  : 'bg-muted/60 text-muted-foreground hover:bg-muted'
+              }`}
+            >
+              Maior preço
             </button>
           </div>
           
@@ -419,12 +389,12 @@ const MarketHub = () => {
               <ShoppingBag className="text-muted-foreground" size={36} />
             </div>
             <p className="text-foreground font-semibold text-lg mb-1">
-              {searchQuery || priceFilter !== 'all' || ratingFilter !== 'all'
+              {searchQuery || categoryFilter || priceFilter !== 'all' || ratingFilter !== 'all'
                 ? 'Nenhum produto encontrado'
                 : 'Nenhum produto disponível'}
             </p>
             <p className="text-sm text-muted-foreground mb-6 max-w-xs mx-auto">
-              {searchQuery || priceFilter !== 'all' || ratingFilter !== 'all'
+              {searchQuery || categoryFilter || priceFilter !== 'all' || ratingFilter !== 'all'
                 ? 'Tente ajustar seus filtros de busca'
                 : 'Seja o primeiro a anunciar um produto!'}
             </p>
@@ -494,6 +464,12 @@ const MarketHub = () => {
                           <ShoppingBag className="text-muted-foreground" size={36} />
                         </div>
                       )}
+                      {/* Category Badge */}
+                      {item.category && (
+                        <span className="absolute top-2 left-2 px-2 py-0.5 bg-card/90 backdrop-blur-sm text-[10px] font-medium rounded-full text-foreground">
+                          {getCategoryLabel(item.category)}
+                        </span>
+                      )}
                       <button
                         className={`absolute top-2 right-2 p-2 rounded-xl shadow-sm transition-all ${
                           favorites.has(item.id)
@@ -517,9 +493,13 @@ const MarketHub = () => {
                       <h4 className="font-semibold text-foreground text-sm line-clamp-1 mb-0.5">
                         {item.title}
                       </h4>
-                      <p className="text-[11px] text-muted-foreground line-clamp-1 mb-2">
-                        por {item.profiles?.display_name || 'Vendedor'}
-                      </p>
+                      <button
+                        onClick={(e) => handleViewSeller(e, item)}
+                        className="text-[11px] text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 mb-2"
+                      >
+                        <User size={10} />
+                        {item.profiles?.display_name || 'Vendedor'}
+                      </button>
                       <div className="flex items-center justify-between">
                         {item.price ? (
                           <span className="text-base font-bold text-success">
@@ -528,15 +508,6 @@ const MarketHub = () => {
                         ) : (
                           <span className="text-xs text-muted-foreground">Consultar</span>
                         )}
-                        <button
-                          className="p-2 bg-success/10 hover:bg-success/20 rounded-xl transition-colors"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedProduct(item);
-                          }}
-                        >
-                          <MessageCircle size={16} className="text-success" />
-                        </button>
                       </div>
                     </div>
                   </div>
@@ -564,10 +535,21 @@ const MarketHub = () => {
                     
                     <div className="flex-1 p-3 flex flex-col justify-between">
                       <div>
-                        <h4 className="font-semibold text-foreground text-sm line-clamp-1">{item.title}</h4>
-                        <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
-                          por {item.profiles?.display_name || 'Vendedor'}
-                        </p>
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <h4 className="font-semibold text-foreground text-sm line-clamp-1">{item.title}</h4>
+                          {item.category && (
+                            <span className="px-1.5 py-0.5 bg-muted text-[9px] font-medium rounded text-muted-foreground">
+                              {getCategoryLabel(item.category)}
+                            </span>
+                          )}
+                        </div>
+                        <button
+                          onClick={(e) => handleViewSeller(e, item)}
+                          className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+                        >
+                          <User size={10} />
+                          {item.profiles?.display_name || 'Vendedor'}
+                        </button>
                       </div>
                       
                       <div className="flex items-center justify-between mt-2">
@@ -576,24 +558,16 @@ const MarketHub = () => {
                         ) : (
                           <span className="text-xs text-muted-foreground">Consultar</span>
                         )}
-                        <div className="flex gap-1.5">
-                          <button
-                            className="p-2 bg-success/10 hover:bg-success/20 rounded-lg transition-colors"
-                            onClick={(e) => { e.stopPropagation(); setSelectedProduct(item); }}
-                          >
-                            <MessageCircle size={14} className="text-success" />
-                          </button>
-                          <button
-                            className={`p-2 rounded-lg transition-colors ${
-                              favorites.has(item.id)
-                                ? 'bg-destructive/20 text-destructive'
-                                : 'bg-muted hover:bg-destructive/10 text-muted-foreground hover:text-destructive'
-                            }`}
-                            onClick={(e) => toggleFavorite(e, item.id)}
-                          >
-                            <Heart size={14} fill={favorites.has(item.id) ? 'currentColor' : 'none'} />
-                          </button>
-                        </div>
+                        <button
+                          className={`p-2 rounded-lg transition-colors ${
+                            favorites.has(item.id)
+                              ? 'bg-destructive/20 text-destructive'
+                              : 'bg-muted hover:bg-destructive/10 text-muted-foreground hover:text-destructive'
+                          }`}
+                          onClick={(e) => toggleFavorite(e, item.id)}
+                        >
+                          <Heart size={14} fill={favorites.has(item.id) ? 'currentColor' : 'none'} />
+                        </button>
                       </div>
                     </div>
                   </div>

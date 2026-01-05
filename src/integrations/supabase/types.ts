@@ -362,6 +362,7 @@ export type Database = {
       }
       marketplace_items: {
         Row: {
+          category: string | null
           created_at: string
           description: string | null
           featured: boolean | null
@@ -371,8 +372,10 @@ export type Database = {
           title: string
           updated_at: string
           user_id: string
+          view_count: number | null
         }
         Insert: {
+          category?: string | null
           created_at?: string
           description?: string | null
           featured?: boolean | null
@@ -382,8 +385,10 @@ export type Database = {
           title: string
           updated_at?: string
           user_id: string
+          view_count?: number | null
         }
         Update: {
+          category?: string | null
           created_at?: string
           description?: string | null
           featured?: boolean | null
@@ -393,6 +398,7 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string
+          view_count?: number | null
         }
         Relationships: [
           {
@@ -403,6 +409,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          data: Json | null
+          id: string
+          message: string
+          read: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json | null
+          id?: string
+          message: string
+          read?: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       product_favorites: {
         Row: {
@@ -721,6 +760,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      search_history: {
+        Row: {
+          created_at: string
+          id: string
+          query: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          query: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          query?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       social_feed: {
         Row: {

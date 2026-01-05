@@ -12,6 +12,7 @@ interface FavoriteItem {
   image_url: string | null;
   user_id: string;
   featured: boolean | null;
+  category: string | null;
   profiles: {
     display_name: string | null;
     avatar_url?: string | null;
