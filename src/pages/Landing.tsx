@@ -66,17 +66,14 @@ const Landing = () => {
               <a href="#manifesto" className="text-sm font-medium text-muted-foreground hover:text-primary transition">
                 Manifesto
               </a>
+              <Link to="/sobre" className="text-sm font-medium text-muted-foreground hover:text-primary transition">
+                Sobre Nós
+              </Link>
               <a href="#funcionalidades" className="text-sm font-medium text-muted-foreground hover:text-primary transition">
                 Funcionalidades
               </a>
-              <a href="#video" className="text-sm font-medium text-muted-foreground hover:text-primary transition">
-                Demo
-              </a>
               <a href="#faq" className="text-sm font-medium text-muted-foreground hover:text-primary transition">
                 FAQ
-              </a>
-              <a href="#depoimentos" className="text-sm font-medium text-muted-foreground hover:text-primary transition">
-                Histórias
               </a>
               <Link
                 to="/app"
@@ -105,6 +102,13 @@ const Landing = () => {
             >
               Manifesto
             </a>
+            <Link
+              to="/sobre"
+              className="block text-muted-foreground font-medium"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Sobre Nós
+            </Link>
             <a
               href="#funcionalidades"
               className="block text-muted-foreground font-medium"
@@ -112,8 +116,8 @@ const Landing = () => {
             >
               Funcionalidades
             </a>
-            <a href="#mercado" className="block text-muted-foreground font-medium" onClick={() => setIsMenuOpen(false)}>
-              Renda Extra
+            <a href="#faq" className="block text-muted-foreground font-medium" onClick={() => setIsMenuOpen(false)}>
+              FAQ
             </a>
             <Link
               to="/app"
@@ -228,9 +232,15 @@ const Landing = () => {
 
       {/* Manifesto Section */}
       <section id="manifesto" className="py-24 lg:py-32 relative overflow-hidden">
-        {/* Background with soft gradient and subtle pattern */}
-        <div className="absolute inset-0 bg-gradient-to-b from-accent/5 via-primary/5 to-background"></div>
-        <div className="absolute inset-0 opacity-[0.03]" style={{
+        {/* Background with soft image overlay */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-[0.08]"
+          style={{
+            backgroundImage: `url("https://images.unsplash.com/photo-1516627145497-ae6968895b74?q=80&w=2070&auto=format&fit=crop")`
+          }}
+        ></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-accent/10 via-primary/5 to-background"></div>
+        <div className="absolute inset-0 opacity-[0.02]" style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
         }}></div>
         
@@ -258,7 +268,7 @@ const Landing = () => {
             </p>
 
             {/* Main Content */}
-            <div className="bg-card/80 backdrop-blur-sm rounded-3xl p-8 md:p-12 lg:p-16 shadow-xl border border-border/50 space-y-8">
+            <div className="bg-card/90 backdrop-blur-md rounded-3xl p-10 md:p-14 lg:p-20 shadow-2xl border border-border/30 space-y-10">
               <p className="font-lora text-lg md:text-xl text-muted-foreground leading-relaxed text-center">
                 A jornada de uma mãe atípica é feita de silêncios que poucos ouvem e de uma força que ninguém deveria ter que sustentar sozinha.
               </p>
@@ -343,10 +353,10 @@ const Landing = () => {
 
                 {/* WhatsApp CTA Button */}
                 <a 
-                  href="https://wa.me/5511999999999?text=Olá!%20Preciso%20de%20apoio.%20Vamos%20conversar?"
+                  href="https://wa.me/5511961226754?text=Olá!%20Sou%20mãe%20atípica%20e%20gostaria%20de%20saber%20mais%20sobre%20o%20acolhimento%20do%20Centro."
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-3 bg-success hover:bg-success/90 text-success-foreground px-8 py-4 rounded-full font-bold text-lg shadow-lg hover:-translate-y-1 transition-all duration-300"
+                  className="inline-flex items-center gap-3 bg-[#25D366] hover:bg-[#20BA5C] text-white px-8 py-4 rounded-full font-bold text-lg shadow-xl hover:-translate-y-1 transition-all duration-300"
                 >
                   <MessageCircle size={24} />
                   Preciso de apoio. Vamos conversar?
