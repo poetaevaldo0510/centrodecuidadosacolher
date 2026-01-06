@@ -1,5 +1,9 @@
 import type { Config } from "tailwindcss";
 
+// Note: Font families for manifesto section
+// 'Cormorant Garamond' - elegant serif for headings
+// 'Lora' - refined serif for body text
+
 export default {
   darkMode: ["class"],
   content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
@@ -13,6 +17,10 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        'cormorant': ['"Cormorant Garamond"', 'serif'],
+        'lora': ['Lora', 'serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

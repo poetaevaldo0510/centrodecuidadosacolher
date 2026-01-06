@@ -16,6 +16,8 @@ import {
   VolumeX,
   ChevronDown,
   Shield,
+  MessageCircle,
+  Quote,
 } from 'lucide-react';
 import {
   Accordion,
@@ -42,6 +44,7 @@ const Landing = () => {
   const testimonialSection = useIntersectionObserver();
   const videoSection = useIntersectionObserver();
   const faqSection = useIntersectionObserver();
+  const manifestoSection = useIntersectionObserver();
   const marketSection = useIntersectionObserver();
   const ctaSection = useIntersectionObserver();
 
@@ -60,6 +63,9 @@ const Landing = () => {
 
             {/* Desktop Menu */}
             <div className="hidden md:flex items-center space-x-8">
+              <a href="#manifesto" className="text-sm font-medium text-muted-foreground hover:text-primary transition">
+                Manifesto
+              </a>
               <a href="#funcionalidades" className="text-sm font-medium text-muted-foreground hover:text-primary transition">
                 Funcionalidades
               </a>
@@ -92,6 +98,13 @@ const Landing = () => {
         {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="md:hidden bg-card border-t border-border p-4 space-y-4 animate-slide-in-from-bottom">
+            <a
+              href="#manifesto"
+              className="block text-muted-foreground font-medium"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Manifesto
+            </a>
             <a
               href="#funcionalidades"
               className="block text-muted-foreground font-medium"
@@ -207,6 +220,144 @@ const Landing = () => {
                     <p className="text-[10px] text-muted-foreground">Carla (filho 6 anos) está online</p>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Manifesto Section */}
+      <section id="manifesto" className="py-24 lg:py-32 relative overflow-hidden">
+        {/* Background with soft gradient and subtle pattern */}
+        <div className="absolute inset-0 bg-gradient-to-b from-accent/5 via-primary/5 to-background"></div>
+        <div className="absolute inset-0 opacity-[0.03]" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+        }}></div>
+        
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div 
+            ref={manifestoSection.ref}
+            className={`transition-all duration-1000 ${
+              manifestoSection.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            }`}
+          >
+            {/* Decorative Quote Icon */}
+            <div className="flex justify-center mb-8">
+              <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center">
+                <Quote size={32} className="text-accent" />
+              </div>
+            </div>
+
+            {/* Title */}
+            <h2 className="font-cormorant text-3xl md:text-4xl lg:text-5xl font-semibold text-center text-foreground mb-4 leading-tight">
+              Manifesto: O Nosso Acolhimento à Mãe Atípica
+            </h2>
+            
+            <p className="font-lora text-xl md:text-2xl text-center text-accent italic mb-12">
+              "Porque antes de ser 'mãe de...', você é você."
+            </p>
+
+            {/* Main Content */}
+            <div className="bg-card/80 backdrop-blur-sm rounded-3xl p-8 md:p-12 lg:p-16 shadow-xl border border-border/50 space-y-8">
+              <p className="font-lora text-lg md:text-xl text-muted-foreground leading-relaxed text-center">
+                A jornada de uma mãe atípica é feita de silêncios que poucos ouvem e de uma força que ninguém deveria ter que sustentar sozinha.
+              </p>
+
+              <p className="font-lora text-base md:text-lg text-muted-foreground leading-relaxed">
+                Nós sabemos que o seu dia não termina quando o sol se põe. Sabemos que a sua mente é um arquivo vivo de laudos, horários de terapias, lutas por direitos e a busca incessante pelo bem-estar do seu filho. Mas aqui, no Centro de Cuidados Acolher, a nossa pergunta é outra:
+              </p>
+
+              <p className="font-cormorant text-2xl md:text-3xl text-primary font-semibold text-center py-4">
+                "E como está você, mãe?"
+              </p>
+
+              {/* Understanding Section */}
+              <div className="space-y-4">
+                <h3 className="font-cormorant text-xl md:text-2xl font-semibold text-foreground">
+                  Nós entendemos que:
+                </h3>
+                <ul className="font-lora text-base md:text-lg text-muted-foreground space-y-3">
+                  <li className="flex items-start gap-3">
+                    <Heart size={20} className="text-accent mt-1 flex-shrink-0" fill="currentColor" />
+                    <span>O diagnóstico não veio só para o seu filho, ele mudou o seu mundo.</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Heart size={20} className="text-accent mt-1 flex-shrink-0" fill="currentColor" />
+                    <span>A exaustão física é real, mas a exaustão emocional de ser "a fortaleza" o tempo todo é ainda maior.</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Heart size={20} className="text-accent mt-1 flex-shrink-0" fill="currentColor" />
+                    <span>A solidão pode aparecer mesmo rodeada de médicos e terapeutas.</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Commitment Section */}
+              <div className="space-y-4">
+                <h3 className="font-cormorant text-xl md:text-2xl font-semibold text-foreground">
+                  O nosso compromisso com você:
+                </h3>
+                <p className="font-lora text-base md:text-lg text-muted-foreground leading-relaxed">
+                  Aqui, não olhamos apenas para a patologia ou para a deficiência. Olhamos para a mulher que sustenta essa jornada. Oferecemos um porto seguro para que você possa:
+                </p>
+                
+                <div className="grid md:grid-cols-3 gap-6 mt-6">
+                  <div className="bg-background/50 rounded-2xl p-6 text-center border border-border/30">
+                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Heart size={24} className="text-primary" />
+                    </div>
+                    <h4 className="font-cormorant text-lg font-semibold text-foreground mb-2">Validar as suas emoções</h4>
+                    <p className="font-lora text-sm text-muted-foreground">
+                      Onde o cansaço não é pecado e a sua dor é respeitada.
+                    </p>
+                  </div>
+                  
+                  <div className="bg-background/50 rounded-2xl p-6 text-center border border-border/30">
+                    <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Users size={24} className="text-accent" />
+                    </div>
+                    <h4 className="font-cormorant text-lg font-semibold text-foreground mb-2">Encontrar Comunidade</h4>
+                    <p className="font-lora text-sm text-muted-foreground">
+                      Porque a jornada atípica é pesada demais para um par de ombros só.
+                    </p>
+                  </div>
+                  
+                  <div className="bg-background/50 rounded-2xl p-6 text-center border border-border/30">
+                    <div className="w-12 h-12 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Star size={24} className="text-success" />
+                    </div>
+                    <h4 className="font-cormorant text-lg font-semibold text-foreground mb-2">Resgatar a sua Identidade</h4>
+                    <p className="font-lora text-sm text-muted-foreground">
+                      Para que você se lembre que, além de cuidadora, você tem sonhos, voz e merece ser cuidada.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Closing Message */}
+              <div className="text-center pt-6 border-t border-border/30">
+                <p className="font-lora text-lg md:text-xl text-foreground font-medium mb-8">
+                  Você não precisa dar conta de tudo sozinha.<br />
+                  <span className="text-primary">Deixe-nos acolher quem sempre acolhe todos os outros.</span>
+                </p>
+
+                {/* WhatsApp CTA Button */}
+                <a 
+                  href="https://wa.me/5511999999999?text=Olá!%20Preciso%20de%20apoio.%20Vamos%20conversar?"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-3 bg-success hover:bg-success/90 text-success-foreground px-8 py-4 rounded-full font-bold text-lg shadow-lg hover:-translate-y-1 transition-all duration-300"
+                >
+                  <MessageCircle size={24} />
+                  Preciso de apoio. Vamos conversar?
+                </a>
+              </div>
+
+              {/* Poetic Closing */}
+              <div className="pt-8 text-center">
+                <p className="font-cormorant text-xl md:text-2xl italic text-accent/80">
+                  "A tipicidade do amor é saber florescer no terreno que a vida nos deu."
+                </p>
               </div>
             </div>
           </div>
