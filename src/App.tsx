@@ -9,7 +9,9 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Install from "./pages/Install";
 import Admin from "./pages/Admin";
+import About from "./pages/About";
 import NotFound from "./pages/NotFound";
+import FloatingWhatsApp from "./components/FloatingWhatsApp";
 
 const queryClient = new QueryClient();
 
@@ -26,9 +28,11 @@ const App = () => (
             <Route path="/app" element={<Index />} />
             <Route path="/install" element={<Install />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/sobre" element={<About />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <FloatingWhatsApp />
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>
