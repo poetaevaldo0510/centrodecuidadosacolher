@@ -69,9 +69,9 @@ const Landing = () => {
               <Link to="/sobre" className="text-sm font-medium text-muted-foreground hover:text-primary transition">
                 Sobre Nós
               </Link>
-              <a href="#funcionalidades" className="text-sm font-medium text-muted-foreground hover:text-primary transition">
-                Funcionalidades
-              </a>
+              <Link to="/servicos" className="text-sm font-medium text-muted-foreground hover:text-primary transition">
+                Serviços
+              </Link>
               <a href="#faq" className="text-sm font-medium text-muted-foreground hover:text-primary transition">
                 FAQ
               </a>
@@ -109,13 +109,13 @@ const Landing = () => {
             >
               Sobre Nós
             </Link>
-            <a
-              href="#funcionalidades"
+            <Link
+              to="/servicos"
               className="block text-muted-foreground font-medium"
               onClick={() => setIsMenuOpen(false)}
             >
-              Funcionalidades
-            </a>
+              Serviços
+            </Link>
             <a href="#faq" className="block text-muted-foreground font-medium" onClick={() => setIsMenuOpen(false)}>
               FAQ
             </a>
@@ -374,7 +374,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* Features Section - PCH Style */}
       <section id="funcionalidades" className="py-20 bg-muted/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div 
@@ -383,50 +383,59 @@ const Landing = () => {
               featuresSection.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`}
           >
-            <h2 className="text-3xl font-bold text-foreground mb-4">Mais do que uma agenda. Um segundo cérebro.</h2>
+            <h2 className="text-3xl font-bold text-foreground mb-4">
+              Não oferecemos ferramentas.<br />
+              <span className="text-primary">Oferecemos paz de espírito.</span>
+            </h2>
             <p className="text-muted-foreground">
               A maternidade atípica exige a gestão de uma empresa multinacional. O Acolher simplifica o caos para que
-              você possa ser apenas mãe.
+              você possa ser <span className="italic">apenas</span> mãe.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {/* Feature 1 */}
-            <div className="bg-card p-8 rounded-3xl shadow-sm hover:shadow-md transition border border-border">
+            {/* Feature 1 - Olhos Sentinelas */}
+            <div className="bg-card p-8 rounded-3xl shadow-sm hover:shadow-md transition border border-border group">
               <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-6">
                 <Zap size={32} />
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-3">Inteligência de Saúde</h3>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2">Inteligência de Saúde</p>
+              <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors">
+                Olhos Sentinelas
+              </h3>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                Esqueceu de anotar a reação ao remédio? Com um clique, registre crises e sono. Nossa IA cruza os dados
-                e gera relatórios prontos para o médico.
+                Nossa IA não dorme, para que você possa. Ela cruza dados, detecta padrões e gera relatórios prontos — você só precisa mostrar ao médico.
               </p>
             </div>
 
-            {/* Feature 2 */}
-            <div className="bg-card p-8 rounded-3xl shadow-sm hover:shadow-md transition border border-border">
+            {/* Feature 2 - Tribo de Apoio */}
+            <div className="bg-card p-8 rounded-3xl shadow-sm hover:shadow-md transition border border-border group">
               <div className="w-14 h-14 bg-accent/10 rounded-2xl flex items-center justify-center text-accent mb-6">
                 <Heart size={32} />
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-3">Tribo & SOS</h3>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2">Tribo & SOS</p>
+              <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-accent transition-colors">
+                O Fim da Solidão
+              </h3>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                Sentindo solidão? O algoritmo "Twin Mom" conecta você a mães com filhos do mesmo perfil. E o botão SOS
-                traz apoio emocional imediato.
+                Sentir-se sozinha é a maior dor invisível. O algoritmo "Twin Mom" encontra mães com filhos do mesmo perfil. Você nunca mais caminha só.
               </p>
             </div>
 
-            {/* Feature 3 */}
-            <div className="bg-card p-8 rounded-3xl shadow-sm hover:shadow-md transition border border-border relative overflow-hidden">
+            {/* Feature 3 - Marketplace */}
+            <div className="bg-card p-8 rounded-3xl shadow-sm hover:shadow-md transition border border-border relative overflow-hidden group">
               <div className="absolute top-0 right-0 bg-success text-success-foreground text-[10px] font-bold px-2 py-1 rounded-bl-lg">
                 NOVIDADE
               </div>
               <div className="w-14 h-14 bg-success/10 rounded-2xl flex items-center justify-center text-success mb-6">
                 <ShoppingBag size={32} />
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-3">Marketplace Materno</h3>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2">Economia Circular</p>
+              <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-success transition-colors">
+                Sua Experiência Vale Ouro
+              </h3>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                Transforme sua experiência em renda. Venda materiais adaptados, consultorias ou artesanato para outras
-                mães na nossa loja integrada.
+                Transforme anos de adaptações em renda. Venda materiais, consultorias ou artesanato. Sua dor vira propósito — e retorno financeiro.
               </p>
             </div>
           </div>
@@ -689,7 +698,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* CTA Section - PCH Style */}
       <section className="py-20 bg-background">
         <div 
           ref={ctaSection.ref}
@@ -697,10 +706,13 @@ const Landing = () => {
             ctaSection.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
           }`}
         >
-          <h2 className="text-4xl font-bold text-foreground mb-6">Comece a transformar a sua rotina hoje.</h2>
+          <h2 className="text-4xl font-bold text-foreground mb-6">
+            O primeiro passo é o mais difícil.<br />
+            <span className="text-primary">Deixe-nos dar a mão.</span>
+          </h2>
           <p className="text-lg text-muted-foreground mb-10">
-            Junte-se a milhares de mães que estão trocando o caos pela clareza. <br />
-            Grátis para começar. Essencial para a vida toda.
+            Junte-se a milhares de mães que trocaram a solidão pela comunidade. <br />
+            Grátis para começar. Essencial para respirar mais leve.
           </p>
 
           <form
@@ -719,7 +731,7 @@ const Landing = () => {
               type="submit"
               className="bg-primary text-primary-foreground px-8 py-4 rounded-full font-bold hover:bg-primary/90 transition shadow-lg"
             >
-              Entrar na Lista VIP
+              Quero Paz de Espírito
             </button>
           </form>
 
