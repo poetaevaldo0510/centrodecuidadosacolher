@@ -16,20 +16,70 @@ import {
   Star,
   Clock,
   Send,
-  Calendar
+  Calendar,
+  ChevronDown,
+  HelpCircle
 } from 'lucide-react';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 
 const Services = () => {
   const heroSection = useIntersectionObserver();
   const servicesSection = useIntersectionObserver();
   const testimonialsSection = useIntersectionObserver();
   const formSection = useIntersectionObserver();
+  const faqSection = useIntersectionObserver();
   const ctaSection = useIntersectionObserver();
+
+  const [openFaqItem, setOpenFaqItem] = useState<string | undefined>(undefined);
+
+  const faqs = [
+    {
+      id: "faq-1",
+      question: "Estou me sentindo culpado por considerar essa opção. Isso é normal?",
+      answer: "Esse sentimento que você carrega não é fraqueza — é a prova mais pura do seu amor. A culpa nasce do cuidado profundo que você sente. Buscar ajuda profissional não significa abandonar; significa proporcionar a melhor qualidade de vida possível. Aqui, você não está \"se livrando\" de ninguém. Está estendendo os braços da sua família com os nossos.",
+      emotion: "Validação do amor"
+    },
+    {
+      id: "faq-2",
+      question: "Como sei se meu familiar será tratado com dignidade?",
+      answer: "A dignidade aqui não é um protocolo — é nossa razão de existir. Cada profissional é selecionado não apenas pela técnica, mas pela capacidade de ver a pessoa por trás do cuidado. Convidamos você a nos visitar, sentir o ambiente, observar as interações. A paz que você busca para seu familiar começa quando você sente que encontrou o lugar certo.",
+      emotion: "Confiança restaurada"
+    },
+    {
+      id: "faq-3",
+      question: "Posso visitar a qualquer momento?",
+      answer: "Sua presença não é apenas permitida — é celebrada. Entendemos que a distância física pode pesar, por isso mantemos nossas portas sempre abertas. Além das visitas presenciais, oferecemos atualizações regulares para que você se sinta conectado, mesmo quando não pode estar aqui. Você nunca estará distante demais.",
+      emotion: "Conexão preservada"
+    },
+    {
+      id: "faq-4",
+      question: "E se meu familiar não se adaptar?",
+      answer: "A adaptação é uma jornada, não um destino. Nossa equipe é treinada para esse acolhimento gradual, respeitando o tempo e as emoções de cada pessoa. Muitos familiares que chegaram resistentes hoje nos chamam de 'segundo lar'. E se, mesmo assim, não for o caminho certo, estaremos ao seu lado para encontrar a melhor solução — porque nosso compromisso é com o bem-estar, não com contratos.",
+      emotion: "Segurança garantida"
+    },
+    {
+      id: "faq-5",
+      question: "Qual o diferencial do Acolher?",
+      answer: "Não vendemos serviços de saúde. Entregamos paz de espírito para famílias e dignidade para quem amamos. Enquanto outros lugares falam de 'enfermagem 24h', nós oferecemos 'Olhos Sentinelas' — uma vigília que não dorme para que você possa, finalmente, descansar. Cada detalhe, do aroma dos ambientes à gentileza de cada interação, foi pensado para transmitir um único sentimento: amor.",
+      emotion: "Propósito único"
+    },
+    {
+      id: "faq-6",
+      question: "Como funciona o primeiro contato?",
+      answer: "O primeiro passo é uma conversa — sem compromisso, sem pressão. Queremos ouvir sua história, entender suas preocupações e mostrar quem somos. Você pode nos chamar pelo WhatsApp ou agendar uma visita. Não há formulários frios ou processos burocráticos. Há apenas pessoas dispostas a carregar esse peso com você.",
+      emotion: "Acolhimento imediato"
+    }
+  ];
 
   const [formData, setFormData] = useState({
     name: '',
@@ -506,6 +556,87 @@ const Services = () => {
                   </p>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section - PCH Style */}
+      <section className="py-16 lg:py-24 bg-muted/20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div 
+            ref={faqSection.ref}
+            className={`transition-all duration-1000 ${
+              faqSection.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            }`}
+          >
+            <div className="text-center mb-12">
+              <span className="inline-block py-1 px-3 rounded-full bg-accent/10 text-accent text-xs font-bold tracking-wide mb-4 border border-accent/20">
+                <HelpCircle size={12} className="inline mr-1" /> Dúvidas do Coração
+              </span>
+              <h2 className="font-cormorant text-3xl md:text-4xl font-semibold text-foreground mb-4">
+                As perguntas que você tem medo de fazer<br />
+                <span className="text-primary">(e as respostas que você precisa ouvir)</span>
+              </h2>
+              <p className="font-lora text-lg text-muted-foreground max-w-2xl mx-auto">
+                Sabemos que por trás de cada dúvida técnica existe uma preocupação emocional. 
+                Aqui, respondemos às duas.
+              </p>
+            </div>
+
+            <Accordion 
+              type="single" 
+              collapsible 
+              value={openFaqItem}
+              onValueChange={setOpenFaqItem}
+              className="space-y-4"
+            >
+              {faqs.map((faq) => (
+                <AccordionItem 
+                  key={faq.id} 
+                  value={faq.id}
+                  className="bg-card rounded-2xl border border-border/50 px-6 overflow-hidden data-[state=open]:shadow-lg transition-shadow duration-300"
+                >
+                  <AccordionTrigger className="py-6 hover:no-underline group">
+                    <div className="flex items-start gap-4 text-left">
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
+                        <HelpCircle size={20} className="text-primary" />
+                      </div>
+                      <span className="font-lora text-lg font-medium text-foreground group-hover:text-primary transition-colors">
+                        {faq.question}
+                      </span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-6">
+                    <div className="pl-14">
+                      <p className="font-lora text-muted-foreground leading-relaxed mb-4">
+                        {faq.answer}
+                      </p>
+                      <div className="flex items-center gap-2 pt-3 border-t border-border/30">
+                        <Sparkles size={14} className="text-accent" />
+                        <span className="text-sm font-medium text-accent">
+                          {faq.emotion}
+                        </span>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+
+            <div className="mt-12 text-center">
+              <p className="font-lora text-muted-foreground mb-4">
+                Ainda tem perguntas? Estamos aqui para ouvir.
+              </p>
+              <a 
+                href="https://wa.me/5511961226754?text=Olá!%20Tenho%20algumas%20dúvidas%20sobre%20o%20Centro%20Acolher.%20Podem%20me%20ajudar?"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-[#25D366] hover:bg-[#20BA5C] text-white px-6 py-3 rounded-full font-bold shadow-lg hover:-translate-y-1 transition-all duration-300"
+              >
+                <MessageCircle size={18} />
+                Conversar sobre suas dúvidas
+              </a>
             </div>
           </div>
         </div>
