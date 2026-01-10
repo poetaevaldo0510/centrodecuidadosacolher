@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import { 
   Heart, 
   ArrowLeft, 
@@ -10,14 +11,32 @@ import {
   Users, 
   Sparkles,
   Shield,
-  Phone
+  Phone,
+  Quote,
+  Star,
+  Clock,
+  Send,
+  Calendar
 } from 'lucide-react';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
 
 const Services = () => {
   const heroSection = useIntersectionObserver();
   const servicesSection = useIntersectionObserver();
+  const testimonialsSection = useIntersectionObserver();
+  const formSection = useIntersectionObserver();
   const ctaSection = useIntersectionObserver();
+
+  const [formData, setFormData] = useState({
+    name: '',
+    need: '',
+    time: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const services = [
     {
@@ -69,6 +88,82 @@ const Services = () => {
       color: "accent",
     },
   ];
+
+  const testimonials = [
+    {
+      name: "Maria Helena S.",
+      relation: "Filha de paciente",
+      text: "Encontrar o Acolher foi como encontrar paz depois de meses de angústia. Minha mãe não é tratada como paciente — ela é tratada como a pessoa especial que sempre foi. A culpa que eu sentia se transformou em gratidão.",
+      rating: 5,
+      avatar: "MH"
+    },
+    {
+      name: "Roberto C.",
+      relation: "Filho de paciente",
+      text: "A equipe não cuida apenas do meu pai — cuida de mim também. Cada ligação, cada atualização, me faz sentir que tomei a decisão certa. Finalmente, consigo dormir em paz.",
+      rating: 5,
+      avatar: "RC"
+    },
+    {
+      name: "Ana Paula M.",
+      relation: "Neta de paciente",
+      text: "Minha avó sempre teve medo de 'asilos'. Aqui, ela encontrou um segundo lar. O sorriso dela voltou, e com ele, o nosso também. Obrigada por devolverem a dignidade dela.",
+      rating: 5,
+      avatar: "AP"
+    },
+    {
+      name: "Carlos Eduardo F.",
+      relation: "Filho de paciente",
+      text: "Depois de anos tentando cuidar sozinho, achei que estava falhando. O Acolher me mostrou que pedir ajuda é um ato de amor, não de fraqueza. Minha mãe está mais feliz do que estava em casa.",
+      rating: 5,
+      avatar: "CE"
+    }
+  ];
+
+  const timeSlots = [
+    "Manhã (8h - 12h)",
+    "Tarde (12h - 18h)",
+    "Noite (18h - 20h)",
+    "Qualquer horário"
+  ];
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.name.trim() || !formData.need.trim() || !formData.time.trim()) {
+      toast.error('Por favor, preencha todos os campos');
+      return;
+    }
+
+    if (formData.name.trim().length > 100) {
+      toast.error('Nome deve ter no máximo 100 caracteres');
+      return;
+    }
+
+    if (formData.need.trim().length > 500) {
+      toast.error('Necessidade deve ter no máximo 500 caracteres');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    const message = `Olá! Gostaria de agendar uma visita de acolhimento.
+
+*Nome:* ${formData.name.trim()}
+
+*O que estou buscando:* ${formData.need.trim()}
+
+*Melhor horário para visita:* ${formData.time}`;
+
+    const whatsappUrl = `https://wa.me/5511961226754?text=${encodeURIComponent(message)}`;
+    
+    window.open(whatsappUrl, '_blank');
+    
+    toast.success('Redirecionando para o WhatsApp...');
+    
+    setFormData({ name: '', need: '', time: '' });
+    setIsSubmitting(false);
+  };
 
   return (
     <div className="font-sans text-foreground antialiased bg-background min-h-screen">
@@ -129,13 +224,11 @@ const Services = () => {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a 
-                href="https://wa.me/5511961226754?text=Olá!%20Quero%20paz%20de%20espírito%20para%20minha%20família.%20Podem%20me%20ajudar?"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="#agendamento"
                 className="bg-primary text-primary-foreground px-8 py-4 rounded-full font-bold text-lg shadow-xl hover:-translate-y-1 transition flex items-center justify-center gap-2"
               >
-                <Heart size={20} fill="currentColor" />
-                Quero paz de espírito para minha família
+                <Calendar size={20} />
+                Agendar visita de acolhimento
               </a>
               <a 
                 href="https://wa.me/5511961226754?text=Olá!%20Gostaria%20de%20agendar%20uma%20conversa%20de%20acolhimento."
@@ -144,7 +237,7 @@ const Services = () => {
                 className="bg-card text-primary border-2 border-primary px-8 py-4 rounded-full font-bold text-lg hover:bg-primary/5 transition flex items-center justify-center gap-2"
               >
                 <Phone size={20} />
-                Agendar conversa de acolhimento
+                Conversar agora
               </a>
             </div>
           </div>
@@ -211,6 +304,161 @@ const Services = () => {
                 );
               })}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-16 lg:py-24">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div 
+            ref={testimonialsSection.ref}
+            className={`transition-all duration-1000 ${
+              testimonialsSection.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            }`}
+          >
+            <div className="text-center mb-16">
+              <span className="inline-block py-1 px-3 rounded-full bg-accent/10 text-accent text-xs font-bold tracking-wide mb-4 border border-accent/20">
+                💬 Vozes de Famílias
+              </span>
+              <h2 className="font-cormorant text-3xl md:text-4xl font-semibold text-foreground mb-4">
+                Histórias reais de<br />
+                <span className="text-primary">paz reencontrada.</span>
+              </h2>
+              <p className="font-lora text-lg text-muted-foreground max-w-2xl mx-auto">
+                Cada depoimento é um reflexo do amor que construímos todos os dias.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              {testimonials.map((testimonial, index) => (
+                <div 
+                  key={index}
+                  className="bg-card rounded-3xl p-8 shadow-lg border border-border/50 relative overflow-hidden group hover:shadow-xl transition-all duration-300"
+                >
+                  <Quote size={48} className="absolute top-4 right-4 text-primary/10 group-hover:text-primary/20 transition-colors" />
+                  
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-lg">
+                      {testimonial.avatar}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground">{testimonial.name}</p>
+                      <p className="text-sm text-muted-foreground">{testimonial.relation}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-1 mb-4">
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <Star key={i} size={16} className="fill-warning text-warning" />
+                    ))}
+                  </div>
+                  
+                  <p className="font-lora text-muted-foreground leading-relaxed italic">
+                    "{testimonial.text}"
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Scheduling Form Section */}
+      <section id="agendamento" className="py-16 lg:py-24 bg-muted/20">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div 
+            ref={formSection.ref}
+            className={`transition-all duration-1000 ${
+              formSection.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            }`}
+          >
+            <div className="text-center mb-12">
+              <span className="inline-block py-1 px-3 rounded-full bg-primary/10 text-primary text-xs font-bold tracking-wide mb-4 border border-primary/20">
+                📅 Agende sua Visita
+              </span>
+              <h2 className="font-cormorant text-3xl md:text-4xl font-semibold text-foreground mb-4">
+                Venha conhecer nosso<br />
+                <span className="text-primary">espaço de acolhimento.</span>
+              </h2>
+              <p className="font-lora text-lg text-muted-foreground max-w-xl mx-auto">
+                Preencha o formulário e entraremos em contato para combinar o melhor momento.
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="bg-card rounded-3xl p-8 md:p-10 shadow-xl border border-border/50">
+              <div className="space-y-6">
+                <div>
+                  <Label htmlFor="name" className="text-foreground font-medium mb-2 block">
+                    Seu nome
+                  </Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    placeholder="Como podemos te chamar?"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="rounded-xl border-border/50 focus:border-primary h-12"
+                    maxLength={100}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="need" className="text-foreground font-medium mb-2 block">
+                    O que você está buscando?
+                  </Label>
+                  <Textarea
+                    id="need"
+                    placeholder="Conte-nos um pouco sobre a situação da sua família e como podemos ajudar..."
+                    value={formData.need}
+                    onChange={(e) => setFormData({ ...formData, need: e.target.value })}
+                    className="rounded-xl border-border/50 focus:border-primary min-h-[120px] resize-none"
+                    maxLength={500}
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground mt-1 text-right">
+                    {formData.need.length}/500 caracteres
+                  </p>
+                </div>
+
+                <div>
+                  <Label className="text-foreground font-medium mb-3 block">
+                    <Clock size={16} className="inline mr-2" />
+                    Melhor horário para visita
+                  </Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {timeSlots.map((slot) => (
+                      <button
+                        key={slot}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, time: slot })}
+                        className={`p-4 rounded-xl border-2 transition-all duration-200 text-sm font-medium ${
+                          formData.time === slot
+                            ? 'border-primary bg-primary/10 text-primary'
+                            : 'border-border/50 bg-background hover:border-primary/50 text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        {slot}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-[#25D366] hover:bg-[#20BA5C] text-white px-8 py-4 rounded-full font-bold text-lg shadow-xl hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Send size={20} />
+                  {isSubmitting ? 'Enviando...' : 'Enviar pelo WhatsApp'}
+                </button>
+
+                <p className="text-center text-sm text-muted-foreground">
+                  Ao enviar, você será redirecionado para o WhatsApp com sua mensagem pronta.
+                </p>
+              </div>
+            </form>
           </div>
         </div>
       </section>
