@@ -369,7 +369,10 @@ export type Database = {
           id: string
           image_url: string | null
           price: number | null
+          share_link: string | null
           title: string
+          total_revenue: number | null
+          total_sales: number | null
           updated_at: string
           user_id: string
           view_count: number | null
@@ -382,7 +385,10 @@ export type Database = {
           id?: string
           image_url?: string | null
           price?: number | null
+          share_link?: string | null
           title: string
+          total_revenue?: number | null
+          total_sales?: number | null
           updated_at?: string
           user_id: string
           view_count?: number | null
@@ -395,7 +401,10 @@ export type Database = {
           id?: string
           image_url?: string | null
           price?: number | null
+          share_link?: string | null
           title?: string
+          total_revenue?: number | null
+          total_sales?: number | null
           updated_at?: string
           user_id?: string
           view_count?: number | null
@@ -406,6 +415,77 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_sales: {
+        Row: {
+          buyer_email: string | null
+          buyer_name: string
+          buyer_phone: string | null
+          created_at: string
+          external_sale: boolean | null
+          id: string
+          notes: string | null
+          payment_method: string | null
+          platform_fee: number
+          product_id: string
+          quantity: number
+          seller_amount: number
+          seller_id: string
+          share_link_used: string | null
+          status: string
+          total_price: number
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          buyer_email?: string | null
+          buyer_name: string
+          buyer_phone?: string | null
+          created_at?: string
+          external_sale?: boolean | null
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          platform_fee: number
+          product_id: string
+          quantity?: number
+          seller_amount: number
+          seller_id: string
+          share_link_used?: string | null
+          status?: string
+          total_price: number
+          unit_price: number
+          updated_at?: string
+        }
+        Update: {
+          buyer_email?: string | null
+          buyer_name?: string
+          buyer_phone?: string | null
+          created_at?: string
+          external_sale?: boolean | null
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          platform_fee?: number
+          product_id?: string
+          quantity?: number
+          seller_amount?: number
+          seller_id?: string
+          share_link_used?: string | null
+          status?: string
+          total_price?: number
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_sales_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_items"
             referencedColumns: ["id"]
           },
         ]
@@ -541,6 +621,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      professionals: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean | null
+          license_number: string | null
+          name: string
+          notes: string | null
+          parent_user_id: string
+          phone: string | null
+          professional_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          license_number?: string | null
+          name: string
+          notes?: string | null
+          parent_user_id: string
+          phone?: string | null
+          professional_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          license_number?: string | null
+          name?: string
+          notes?: string | null
+          parent_user_id?: string
+          phone?: string | null
+          professional_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
