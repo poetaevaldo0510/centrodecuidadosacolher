@@ -11,6 +11,7 @@ import Install from "./pages/Install";
 import Admin from "./pages/Admin";
 import About from "./pages/About";
 import Services from "./pages/Services";
+import Product from "./pages/Product";
 import NotFound from "./pages/NotFound";
 import FloatingWhatsApp from "./components/FloatingWhatsApp";
 
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/admin" element={<Admin />} />
             <Route path="/sobre" element={<About />} />
             <Route path="/servicos" element={<Services />} />
+            <Route path="/produto/:shareLink" element={<Product />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
