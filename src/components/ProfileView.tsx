@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, CheckCircle, BookHeart, Edit3, Info, Brain, File, Lock, Smile, Sun, Moon, CloudRain, LogOut, Award, Flame, Trophy, Shield } from 'lucide-react';
+import { User, CheckCircle, BookHeart, Edit3, Info, Brain, File, Lock, Smile, Sun, Moon, CloudRain, LogOut, Award, Flame, Trophy, Shield, Users } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,8 +7,10 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import BackupManager from './BackupManager';
 import BadgesDisplay from './BadgesDisplay';
+import ProfessionalsManager from './ProfessionalsManager';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useNavigate } from 'react-router-dom';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const ProfileView = () => {
   const { setActiveModal, triggerReward, points, streak } = useAppStore();
@@ -152,72 +154,89 @@ const ProfileView = () => {
         </Button>
       </div>
 
-      <div className="p-6 space-y-6 flex-1 overflow-y-auto">
-        {/* Push Notifications */}
-        {isSupported && (
-          <div className="bg-card p-4 rounded-2xl shadow-sm border border-border">
-            <h3 className="font-bold text-foreground mb-3">Notificações Push</h3>
-            {permission === 'granted' ? (
-              <div className="bg-success/10 p-3 rounded-xl border border-success/20">
-                <p className="text-sm text-success font-bold">✓ Ativadas</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Você receberá notificações sobre mensagens e novos produtos
-                </p>
+      <div className="p-6 flex-1 overflow-y-auto">
+        <Tabs defaultValue="geral" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="geral" className="flex items-center gap-2">
+              <User size={14} /> Geral
+            </TabsTrigger>
+            <TabsTrigger value="profissionais" className="flex items-center gap-2">
+              <Users size={14} /> Profissionais
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="geral" className="space-y-6">
+            {/* Push Notifications */}
+            {isSupported && (
+              <div className="bg-card p-4 rounded-2xl shadow-sm border border-border">
+                <h3 className="font-bold text-foreground mb-3">Notificações Push</h3>
+                {permission === 'granted' ? (
+                  <div className="bg-success/10 p-3 rounded-xl border border-success/20">
+                    <p className="text-sm text-success font-bold">✓ Ativadas</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Você receberá notificações sobre mensagens e novos produtos
+                    </p>
+                  </div>
+                ) : permission === 'denied' ? (
+                  <div className="bg-destructive/10 p-3 rounded-xl border border-destructive/20">
+                    <p className="text-sm text-destructive font-bold">✗ Bloqueadas</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Ative nas configurações do navegador
+                    </p>
+                  </div>
+                ) : (
+                  <button
+                    onClick={requestPermission}
+                    className="w-full bg-primary text-primary-foreground py-2 px-4 rounded-xl text-sm font-bold hover:bg-primary/90"
+                  >
+                    Ativar Notificações
+                  </button>
+                )}
               </div>
-            ) : permission === 'denied' ? (
-              <div className="bg-destructive/10 p-3 rounded-xl border border-destructive/20">
-                <p className="text-sm text-destructive font-bold">✗ Bloqueadas</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Ative nas configurações do navegador
-                </p>
-              </div>
-            ) : (
-              <button
-                onClick={requestPermission}
-                className="w-full bg-primary text-primary-foreground py-2 px-4 rounded-xl text-sm font-bold hover:bg-primary/90"
-              >
-                Ativar Notificações
-              </button>
             )}
-          </div>
-        )}
 
-        {/* Backup Manager */}
-        <BackupManager />
+            {/* Backup Manager */}
+            <BackupManager />
 
-        {/* Badges Display */}
-        <BadgesDisplay />
+            {/* Badges Display */}
+            <BadgesDisplay />
 
-        {/* Diário */}
-        <div>
-          <h3 className="font-bold text-foreground mb-3 ml-1 flex items-center gap-2">
-            <BookHeart className="text-purple-600" size={18} /> Meu Diário
-          </h3>
-          <button
-            onClick={() => setActiveModal('journal')}
-            className="w-full bg-purple-50 border border-dashed border-purple-200 p-4 rounded-xl text-center text-sm text-purple-600 hover:bg-purple-100 transition"
-          >
-            Escrever nova reflexão
-          </button>
-        </div>
+            {/* Diário */}
+            <div>
+              <h3 className="font-bold text-foreground mb-3 ml-1 flex items-center gap-2">
+                <BookHeart className="text-purple-600" size={18} /> Meu Diário
+              </h3>
+              <button
+                onClick={() => setActiveModal('journal')}
+                className="w-full bg-purple-50 border border-dashed border-purple-200 p-4 rounded-xl text-center text-sm text-purple-600 hover:bg-purple-100 transition"
+              >
+                Escrever nova reflexão
+              </button>
+            </div>
 
-        {/* Ações Rápidas */}
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={() => setActiveModal('log')}
-            className="bg-card p-4 rounded-xl border border-border hover:shadow-md transition text-left"
-          >
-            <File className="text-primary mb-2" size={20} />
-            <p className="text-xs font-bold text-foreground">Registrar Log</p>
-          </button>
-          <button
-            onClick={() => setActiveModal('report')}
-            className="bg-card p-4 rounded-xl border border-border hover:shadow-md transition text-left"
-          >
-            <File className="text-accent mb-2" size={20} />
-            <p className="text-xs font-bold text-foreground">Ver Relatórios</p>
-          </button>
-        </div>
+            {/* Ações Rápidas */}
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setActiveModal('log')}
+                className="bg-card p-4 rounded-xl border border-border hover:shadow-md transition text-left"
+              >
+                <File className="text-primary mb-2" size={20} />
+                <p className="text-xs font-bold text-foreground">Registrar Log</p>
+              </button>
+              <button
+                onClick={() => setActiveModal('report')}
+                className="bg-card p-4 rounded-xl border border-border hover:shadow-md transition text-left"
+              >
+                <File className="text-accent mb-2" size={20} />
+                <p className="text-xs font-bold text-foreground">Ver Relatórios</p>
+              </button>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="profissionais">
+            <ProfessionalsManager />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

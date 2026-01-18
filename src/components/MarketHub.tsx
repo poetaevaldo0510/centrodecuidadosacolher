@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ShoppingBag, Plus, Heart, Star, Sparkles, Grid3X3, List, User } from 'lucide-react';
+import { ShoppingBag, Plus, Heart, Star, Sparkles, Grid3X3, List, User, LayoutDashboard } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -7,6 +7,7 @@ import { Button } from './ui/button';
 import ProductDetailModal from './modals/ProductDetailModal';
 import FavoritesTab from './marketplace/FavoritesTab';
 import SellerProfile from './marketplace/SellerProfile';
+import SellerDashboard from './marketplace/SellerDashboard';
 import AdvancedSearch from './marketplace/AdvancedSearch';
 import CategoryFilter, { PRODUCT_CATEGORIES } from './marketplace/CategoryFilter';
 import NotificationBell from './marketplace/NotificationBell';
@@ -42,7 +43,7 @@ const MarketHub = () => {
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [activeTab, setActiveTab] = useState<'browse' | 'favorites'>('browse');
+  const [activeTab, setActiveTab] = useState<'browse' | 'favorites' | 'dashboard'>('browse');
   const [selectedSeller, setSelectedSeller] = useState<{ id: string; name: string | null; avatar: string | null } | null>(null);
 
   useEffect(() => {
@@ -261,6 +262,15 @@ const MarketHub = () => {
     );
   }
 
+  // Seller Dashboard Tab
+  if (activeTab === 'dashboard') {
+    return (
+      <div className="flex flex-col min-h-screen bg-background pb-24 animate-fade-in">
+        <SellerDashboard onBack={() => setActiveTab('browse')} />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-background pb-24 animate-fade-in">
       {/* Premium Header */}
@@ -279,6 +289,14 @@ const MarketHub = () => {
           </div>
           <div className="flex gap-2 items-center">
             <NotificationBell userId={currentUserId} />
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setActiveTab('dashboard')}
+              className="rounded-xl border-border/50 hover:bg-primary/10 hover:text-primary hover:border-primary/50"
+            >
+              <LayoutDashboard size={16} />
+            </Button>
             <Button
               size="sm"
               variant="outline"
