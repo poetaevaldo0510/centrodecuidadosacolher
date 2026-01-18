@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, CheckCircle, BookHeart, Edit3, Info, Brain, File, Lock, Smile, Sun, Moon, CloudRain, LogOut, Award, Flame, Trophy, Shield, Users } from 'lucide-react';
+import { User, CheckCircle, BookHeart, File, Lock, Smile, Sun, Moon, CloudRain, LogOut, Flame, Trophy, Shield, Users, BookOpen, Camera, Gift } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,6 +8,9 @@ import { Button } from '@/components/ui/button';
 import BackupManager from './BackupManager';
 import BadgesDisplay from './BadgesDisplay';
 import ProfessionalsManager from './ProfessionalsManager';
+import ResourcesLibrary from './ResourcesLibrary';
+import PhotoGallery from './PhotoGallery';
+import RewardsStore from './RewardsStore';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -98,96 +101,92 @@ const ProfileView = () => {
 
   return (
     <div className="flex flex-col h-screen bg-background pb-20 animate-slide-in-from-right">
-      <div className="bg-gradient-to-br from-primary to-accent p-8 pb-10 rounded-b-[40px] shadow-lg text-center relative z-10 text-white">
-        <div className="w-28 h-28 bg-white/20 backdrop-blur-md rounded-full mx-auto mb-4 border-4 border-white/50 shadow-xl flex items-center justify-center text-4xl font-bold relative">
-          {profile?.display_name ? profile.display_name.charAt(0).toUpperCase() : <User size={40} />}
-          <div className="absolute bottom-0 right-0 w-9 h-9 bg-success border-4 border-white rounded-full flex items-center justify-center">
-            <CheckCircle size={16} className="text-white" />
+      <div className="bg-gradient-to-br from-primary to-accent p-6 pb-8 rounded-b-[32px] shadow-lg text-center relative z-10 text-white">
+        <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-full mx-auto mb-3 border-4 border-white/50 shadow-xl flex items-center justify-center text-3xl font-bold relative">
+          {profile?.display_name ? profile.display_name.charAt(0).toUpperCase() : <User size={32} />}
+          <div className="absolute bottom-0 right-0 w-7 h-7 bg-success border-3 border-white rounded-full flex items-center justify-center">
+            <CheckCircle size={14} className="text-white" />
           </div>
         </div>
 
-        <h2 className="text-2xl font-bold mb-1">{profile?.display_name || 'Usuário'}</h2>
-        <p className="text-sm opacity-90 mb-6">{user?.email}</p>
+        <h2 className="text-xl font-bold mb-0.5">{profile?.display_name || 'Usuário'}</h2>
+        <p className="text-xs opacity-90 mb-4">{user?.email}</p>
 
-        {/* Stats */}
-        <div className="flex justify-center gap-4 mb-6">
-          <div className="bg-white/20 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/30">
-            <Trophy className="mx-auto mb-1" size={20} />
-            <p className="text-2xl font-bold">{points}</p>
-            <p className="text-xs opacity-90">Pontos</p>
+        {/* Stats compactos */}
+        <div className="flex justify-center gap-3 mb-4">
+          <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl border border-white/30 flex items-center gap-2">
+            <Trophy size={16} />
+            <span className="font-bold">{points}</span>
           </div>
-          <div className="bg-white/20 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/30">
-            <Flame className="mx-auto mb-1 text-orange-300" size={20} />
-            <p className="text-2xl font-bold">{streak}</p>
-            <p className="text-xs opacity-90">Dias</p>
+          <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl border border-white/30 flex items-center gap-2">
+            <Flame size={16} className="text-orange-300" />
+            <span className="font-bold">{streak} dias</span>
           </div>
         </div>
         
-        <div className="flex justify-center gap-2 flex-wrap mb-4">
-          <span className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-bold border border-white/30">
-            🏆 Mãe Guardiã
-          </span>
-          <button
-            onClick={() => setActiveModal('about')}
-            className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 border border-white/30 hover:bg-white/30 transition-colors"
-          >
-            <Info size={14} /> Sobre
-          </button>
+        <div className="flex justify-center gap-2">
           {isAdmin && (
             <button
               onClick={() => navigate('/admin')}
-              className="bg-warning/80 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 border border-warning hover:bg-warning transition-colors"
+              className="bg-warning/80 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 border border-warning hover:bg-warning transition-colors"
             >
-              <Shield size={14} /> Admin
+              <Shield size={12} /> Admin
             </button>
           )}
+          <Button
+            onClick={handleLogout}
+            variant="outline"
+            size="sm"
+            className="bg-white/10 border-white/30 text-white hover:bg-white/20 h-7 px-3 text-xs"
+          >
+            <LogOut size={12} className="mr-1" />
+            Sair
+          </Button>
         </div>
-
-        <Button
-          onClick={handleLogout}
-          variant="outline"
-          size="sm"
-          className="mt-2 bg-white/10 border-white/30 text-white hover:bg-white/20"
-        >
-          <LogOut size={14} className="mr-2" />
-          Sair
-        </Button>
       </div>
 
-      <div className="p-6 flex-1 overflow-y-auto">
+      <div className="p-4 flex-1 overflow-y-auto">
         <Tabs defaultValue="geral" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="geral" className="flex items-center gap-2">
-              <User size={14} /> Geral
+          <TabsList className="grid w-full grid-cols-5 mb-4 h-auto p-1">
+            <TabsTrigger value="geral" className="flex flex-col items-center gap-0.5 py-2 text-[10px]">
+              <User size={16} />
+              Geral
             </TabsTrigger>
-            <TabsTrigger value="profissionais" className="flex items-center gap-2">
-              <Users size={14} /> Profissionais
+            <TabsTrigger value="recursos" className="flex flex-col items-center gap-0.5 py-2 text-[10px]">
+              <BookOpen size={16} />
+              Recursos
+            </TabsTrigger>
+            <TabsTrigger value="galeria" className="flex flex-col items-center gap-0.5 py-2 text-[10px]">
+              <Camera size={16} />
+              Galeria
+            </TabsTrigger>
+            <TabsTrigger value="loja" className="flex flex-col items-center gap-0.5 py-2 text-[10px]">
+              <Gift size={16} />
+              Loja
+            </TabsTrigger>
+            <TabsTrigger value="profissionais" className="flex flex-col items-center gap-0.5 py-2 text-[10px]">
+              <Users size={16} />
+              Equipe
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="geral" className="space-y-6">
+          <TabsContent value="geral" className="space-y-4 mt-0">
             {/* Push Notifications */}
             {isSupported && (
-              <div className="bg-card p-4 rounded-2xl shadow-sm border border-border">
-                <h3 className="font-bold text-foreground mb-3">Notificações Push</h3>
+              <div className="bg-card p-3 rounded-xl shadow-sm border border-border">
+                <h3 className="font-bold text-sm text-foreground mb-2">Notificações</h3>
                 {permission === 'granted' ? (
-                  <div className="bg-success/10 p-3 rounded-xl border border-success/20">
-                    <p className="text-sm text-success font-bold">✓ Ativadas</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Você receberá notificações sobre mensagens e novos produtos
-                    </p>
+                  <div className="bg-success/10 p-2 rounded-lg border border-success/20">
+                    <p className="text-xs text-success font-bold">✓ Ativadas</p>
                   </div>
                 ) : permission === 'denied' ? (
-                  <div className="bg-destructive/10 p-3 rounded-xl border border-destructive/20">
-                    <p className="text-sm text-destructive font-bold">✗ Bloqueadas</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Ative nas configurações do navegador
-                    </p>
+                  <div className="bg-destructive/10 p-2 rounded-lg border border-destructive/20">
+                    <p className="text-xs text-destructive font-bold">✗ Bloqueadas</p>
                   </div>
                 ) : (
                   <button
                     onClick={requestPermission}
-                    className="w-full bg-primary text-primary-foreground py-2 px-4 rounded-xl text-sm font-bold hover:bg-primary/90"
+                    className="w-full bg-primary text-primary-foreground py-2 px-3 rounded-lg text-xs font-bold hover:bg-primary/90"
                   >
                     Ativar Notificações
                   </button>
@@ -195,45 +194,54 @@ const ProfileView = () => {
               </div>
             )}
 
-            {/* Backup Manager */}
             <BackupManager />
-
-            {/* Badges Display */}
             <BadgesDisplay />
 
             {/* Diário */}
             <div>
-              <h3 className="font-bold text-foreground mb-3 ml-1 flex items-center gap-2">
-                <BookHeart className="text-purple-600" size={18} /> Meu Diário
+              <h3 className="font-bold text-sm text-foreground mb-2 ml-1 flex items-center gap-2">
+                <BookHeart className="text-purple-600" size={16} /> Diário
               </h3>
               <button
                 onClick={() => setActiveModal('journal')}
-                className="w-full bg-purple-50 border border-dashed border-purple-200 p-4 rounded-xl text-center text-sm text-purple-600 hover:bg-purple-100 transition"
+                className="w-full bg-purple-50 dark:bg-purple-900/20 border border-dashed border-purple-200 dark:border-purple-700 p-3 rounded-xl text-center text-xs text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition"
               >
                 Escrever nova reflexão
               </button>
             </div>
 
             {/* Ações Rápidas */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => setActiveModal('log')}
-                className="bg-card p-4 rounded-xl border border-border hover:shadow-md transition text-left"
+                className="bg-card p-3 rounded-xl border border-border hover:shadow-md transition text-left"
               >
-                <File className="text-primary mb-2" size={20} />
+                <File className="text-primary mb-1" size={18} />
                 <p className="text-xs font-bold text-foreground">Registrar Log</p>
               </button>
               <button
                 onClick={() => setActiveModal('report')}
-                className="bg-card p-4 rounded-xl border border-border hover:shadow-md transition text-left"
+                className="bg-card p-3 rounded-xl border border-border hover:shadow-md transition text-left"
               >
-                <File className="text-accent mb-2" size={20} />
+                <File className="text-accent mb-1" size={18} />
                 <p className="text-xs font-bold text-foreground">Ver Relatórios</p>
               </button>
             </div>
           </TabsContent>
 
-          <TabsContent value="profissionais">
+          <TabsContent value="recursos" className="mt-0">
+            <ResourcesLibrary />
+          </TabsContent>
+
+          <TabsContent value="galeria" className="mt-0">
+            <PhotoGallery />
+          </TabsContent>
+
+          <TabsContent value="loja" className="mt-0">
+            <RewardsStore />
+          </TabsContent>
+
+          <TabsContent value="profissionais" className="mt-0">
             <ProfessionalsManager />
           </TabsContent>
         </Tabs>
