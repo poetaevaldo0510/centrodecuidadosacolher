@@ -5,8 +5,13 @@ import { ACTION_LIBRARY } from '@/lib/data';
 import WeatherWidget from './WeatherWidget';
 import WeeklyChallenges from './WeeklyChallenges';
 import SmartReminders from './SmartReminders';
+import QuickAccessShortcuts from './QuickAccessShortcuts';
 
-const SmartHome = () => {
+interface SmartHomeProps {
+  onNavigate?: (tab: string) => void;
+}
+
+const SmartHome = ({ onNavigate }: SmartHomeProps) => {
   const [timeOfDay, setTimeOfDay] = useState<'morning' | 'afternoon' | 'night'>('morning');
   const {
     userName,
@@ -130,6 +135,9 @@ const SmartHome = () => {
       </div>
 
       <div className="px-4 space-y-4">
+        {/* Quick Access Shortcuts */}
+        {onNavigate && <QuickAccessShortcuts onNavigate={onNavigate} />}
+
         {/* Weather Widget */}
         <WeatherWidget />
         {/* AI Insight */}

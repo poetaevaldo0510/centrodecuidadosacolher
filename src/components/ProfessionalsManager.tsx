@@ -6,12 +6,12 @@ import {
   Heart, 
   Phone, 
   Mail, 
-  FileText,
   Trash2,
   Edit2,
   Check,
   X,
-  Shield
+  Shield,
+  Star
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -22,6 +22,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import ProfessionalRating from './ProfessionalRating';
 
 interface Professional {
   id: string;
@@ -33,6 +34,7 @@ interface Professional {
   notes: string | null;
   is_active: boolean;
   created_at: string;
+  average_rating?: number;
 }
 
 const PROFESSIONAL_TYPES = [
@@ -49,6 +51,7 @@ const ProfessionalsManager = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [ratingProfessional, setRatingProfessional] = useState<Professional | null>(null);
   
   // Form state
   const [name, setName] = useState('');
@@ -73,7 +76,24 @@ const ProfessionalsManager = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setProfessionals(data || []);
+      
+      // Load ratings for each professional
+      const professionalsWithRatings = await Promise.all(
+        (data || []).map(async (prof) => {
+          const { data: reviews } = await supabase
+            .from('professional_reviews')
+            .select('rating')
+            .eq('professional_id', prof.id);
+          
+          const avgRating = reviews && reviews.length > 0
+            ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+            : 0;
+          
+          return { ...prof, average_rating: avgRating };
+        })
+      );
+      
+      setProfessionals(professionalsWithRatings);
     } catch (error) {
       console.error('Error loading professionals:', error);
     } finally {
@@ -386,6 +406,32 @@ const ProfessionalsManager = () => {
                         </Badge>
                       </div>
                       
+                      {/* Rating display */}
+                      <div className="flex items-center gap-1 mb-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            size={12}
+                            className={`${
+                              star <= (prof.average_rating || 0)
+                                ? 'fill-warning text-warning'
+                                : 'text-muted-foreground/30'
+                            }`}
+                          />
+                        ))}
+                        {(prof.average_rating || 0) > 0 && (
+                          <span className="text-[10px] text-muted-foreground ml-1">
+                            ({prof.average_rating?.toFixed(1)})
+                          </span>
+                        )}
+                        <button
+                          onClick={() => setRatingProfessional(prof)}
+                          className="text-[10px] text-primary font-medium ml-2 hover:underline"
+                        >
+                          Avaliar
+                        </button>
+                      </div>
+                      
                       {prof.email && (
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
                           <Mail size={10} />
@@ -447,6 +493,22 @@ const ProfessionalsManager = () => {
           )}
         </div>
 
+        {/* Rating Modal */}
+        {ratingProfessional && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="w-full max-w-sm">
+              <ProfessionalRating
+                professionalId={ratingProfessional.id}
+                professionalName={ratingProfessional.name}
+                onClose={() => {
+                  setRatingProfessional(null);
+                  loadProfessionals();
+                }}
+              />
+            </div>
+          </div>
+        )}
+
         {/* Info */}
         <div className="bg-muted/30 p-4 rounded-2xl border border-border/30">
           <h4 className="font-bold text-foreground mb-2 flex items-center gap-2">
@@ -456,6 +518,7 @@ const ProfessionalsManager = () => {
             <li>• Profissionais cadastrados podem acompanhar a evolução</li>
             <li>• Eles terão acesso aos registros do seu filho</li>
             <li>• Você pode desativar o acesso a qualquer momento</li>
+            <li>• Avalie os profissionais para ajudar outras mães</li>
           </ul>
         </div>
       </div>
