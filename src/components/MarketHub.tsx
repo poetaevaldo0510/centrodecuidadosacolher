@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
-import { ShoppingBag, Plus, Heart, Star, Sparkles, Grid3X3, List, User, LayoutDashboard } from 'lucide-react';
+import { ShoppingBag, Plus, Heart, Star, Sparkles, Grid3X3, List, User, LayoutDashboard, Search, SlidersHorizontal, ChevronRight, TrendingUp, Percent, Truck, Shield, X } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from './ui/button';
+import { Input } from './ui/input';
 import ProductDetailModal from './modals/ProductDetailModal';
 import FavoritesTab from './marketplace/FavoritesTab';
 import SellerProfile from './marketplace/SellerProfile';
 import SellerDashboard from './marketplace/SellerDashboard';
-import AdvancedSearch from './marketplace/AdvancedSearch';
 import CategoryFilter, { PRODUCT_CATEGORIES } from './marketplace/CategoryFilter';
 import NotificationBell from './marketplace/NotificationBell';
 
@@ -45,6 +45,7 @@ const MarketHub = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [activeTab, setActiveTab] = useState<'browse' | 'favorites' | 'dashboard'>('browse');
   const [selectedSeller, setSelectedSeller] = useState<{ id: string; name: string | null; avatar: string | null } | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     fetchMarketplaceItems();
@@ -145,7 +146,6 @@ const MarketHub = () => {
           .from('product_favorites')
           .insert({ product_id: productId, user_id: currentUserId });
         
-        // Send notification to seller
         if (product && product.user_id !== currentUserId) {
           await supabase.from('notifications').insert({
             user_id: product.user_id,
@@ -210,10 +210,6 @@ const MarketHub = () => {
     setFilteredItems(filtered);
   }, [searchQuery, categoryFilter, priceFilter, ratingFilter, sortBy, marketplaceItems]);
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-  };
-
   const handleViewSeller = (e: React.MouseEvent, item: MarketItem) => {
     e.stopPropagation();
     setSelectedSeller({
@@ -272,188 +268,260 @@ const MarketHub = () => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background pb-24 animate-fade-in">
-      {/* Premium Header */}
-      <div className="bg-gradient-to-br from-success/15 via-success/5 to-card px-4 pt-10 pb-5 sticky top-0 z-10 border-b border-border/50 backdrop-blur-xl">
-        <div className="flex justify-between items-start mb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-gradient-to-br from-success to-success/70 rounded-2xl shadow-lg shadow-success/25">
-              <ShoppingBag className="text-success-foreground" size={24} />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-foreground tracking-tight">Mercado</h2>
-              <p className="text-xs text-muted-foreground">
-                {filteredItems.length} produto{filteredItems.length !== 1 ? 's' : ''} disponíveis
-              </p>
-            </div>
-          </div>
-          <div className="flex gap-2 items-center">
+    <div className="flex flex-col min-h-screen bg-muted/30 pb-24 animate-fade-in">
+      {/* Shopee-style Header */}
+      <div className="bg-gradient-to-r from-primary via-primary to-accent sticky top-0 z-20">
+        {/* Top bar */}
+        <div className="flex items-center justify-between px-4 py-2">
+          <h1 className="text-lg font-bold text-primary-foreground">Mercado</h1>
+          <div className="flex items-center gap-2">
             <NotificationBell userId={currentUserId} />
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setActiveTab('dashboard')}
-              className="rounded-xl border-border/50 hover:bg-primary/10 hover:text-primary hover:border-primary/50"
-            >
-              <LayoutDashboard size={16} />
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
+            <button
               onClick={() => setActiveTab('favorites')}
-              className="rounded-xl border-border/50 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50 relative"
+              className="relative p-2 text-primary-foreground/90 hover:text-primary-foreground transition-colors"
             >
-              <Heart size={16} />
+              <Heart size={20} />
               {favorites.size > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-destructive text-destructive-foreground text-[9px] font-bold rounded-full flex items-center justify-center">
                   {favorites.size}
                 </span>
               )}
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => setActiveModal('sell')}
-              className="bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-success-foreground rounded-xl px-4 shadow-lg shadow-success/20"
+            </button>
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className="p-2 text-primary-foreground/90 hover:text-primary-foreground transition-colors"
             >
-              <Plus size={16} className="mr-1" /> Vender
-            </Button>
+              <LayoutDashboard size={20} />
+            </button>
           </div>
-        </div>
-        
-        {/* Advanced Search */}
-        <div className="mb-4">
-          <AdvancedSearch
-            value={searchQuery}
-            onChange={setSearchQuery}
-            onSearch={handleSearch}
-            placeholder="Buscar produtos, categorias..."
-          />
         </div>
 
-        {/* Category Filter */}
-        <div className="mb-3">
-          <CategoryFilter
-            selected={categoryFilter}
-            onChange={setCategoryFilter}
-          />
-        </div>
-        
-        {/* Quick actions bar */}
-        <div className="flex items-center justify-between">
-          <div className="flex gap-1.5 overflow-x-auto scrollbar-hide flex-1">
+        {/* Search Bar */}
+        <div className="px-4 pb-3">
+          <div className="flex gap-2">
+            <div className="flex-1 relative">
+              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Buscar no Mercado..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 pr-4 h-10 rounded-lg bg-background border-0 text-sm shadow-sm"
+              />
+            </div>
             <button
-              onClick={() => setSortBy(sortBy === 'rating' ? 'recent' : 'rating')}
-              className={`px-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all flex-shrink-0 flex items-center gap-1 ${
-                sortBy === 'rating'
-                  ? 'bg-warning text-warning-foreground'
-                  : 'bg-muted/60 text-muted-foreground hover:bg-muted'
+              onClick={() => setShowFilters(!showFilters)}
+              className={`p-2.5 rounded-lg transition-colors ${
+                showFilters ? 'bg-background text-primary' : 'bg-primary-foreground/20 text-primary-foreground'
               }`}
             >
-              <Star size={10} /> Melhor avaliados
-            </button>
-            <button
-              onClick={() => setSortBy(sortBy === 'price_low' ? 'recent' : 'price_low')}
-              className={`px-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all flex-shrink-0 ${
-                sortBy === 'price_low'
-                  ? 'bg-success text-success-foreground'
-                  : 'bg-muted/60 text-muted-foreground hover:bg-muted'
-              }`}
-            >
-              Menor preço
-            </button>
-            <button
-              onClick={() => setSortBy(sortBy === 'price_high' ? 'recent' : 'price_high')}
-              className={`px-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all flex-shrink-0 ${
-                sortBy === 'price_high'
-                  ? 'bg-success text-success-foreground'
-                  : 'bg-muted/60 text-muted-foreground hover:bg-muted'
-              }`}
-            >
-              Maior preço
-            </button>
-          </div>
-          
-          {/* View toggle */}
-          <div className="flex ml-2 gap-1 p-1 bg-muted/50 rounded-xl">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`p-1.5 rounded-lg transition-colors ${
-                viewMode === 'grid' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground'
-              }`}
-            >
-              <Grid3X3 size={14} />
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`p-1.5 rounded-lg transition-colors ${
-                viewMode === 'list' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground'
-              }`}
-            >
-              <List size={14} />
+              <SlidersHorizontal size={18} />
             </button>
           </div>
         </div>
       </div>
-      
+
+      {/* Filters Panel */}
+      {showFilters && (
+        <div className="bg-card border-b border-border p-4 animate-slide-in-from-top">
+          <div className="flex items-center justify-between mb-3">
+            <span className="font-semibold text-sm text-foreground">Filtros</span>
+            <button onClick={() => setShowFilters(false)} className="text-muted-foreground">
+              <X size={18} />
+            </button>
+          </div>
+          
+          <div className="space-y-3">
+            {/* Sort */}
+            <div>
+              <label className="text-xs text-muted-foreground mb-1.5 block">Ordenar por</label>
+              <div className="flex gap-2 flex-wrap">
+                {[
+                  { value: 'recent', label: 'Recentes' },
+                  { value: 'price_low', label: 'Menor preço' },
+                  { value: 'price_high', label: 'Maior preço' },
+                  { value: 'rating', label: 'Avaliação' },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setSortBy(opt.value as typeof sortBy)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                      sortBy === opt.value
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Price Filter */}
+            <div>
+              <label className="text-xs text-muted-foreground mb-1.5 block">Faixa de preço</label>
+              <div className="flex gap-2 flex-wrap">
+                {[
+                  { value: 'all', label: 'Todos' },
+                  { value: 'low', label: 'Até R$50' },
+                  { value: 'medium', label: 'R$50-150' },
+                  { value: 'high', label: 'Acima R$150' },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setPriceFilter(opt.value as typeof priceFilter)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                      priceFilter === opt.value
+                        ? 'bg-success text-success-foreground'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Rating Filter */}
+            <div>
+              <label className="text-xs text-muted-foreground mb-1.5 block">Avaliação mínima</label>
+              <div className="flex gap-2 flex-wrap">
+                {[
+                  { value: 'all', label: 'Todas' },
+                  { value: '4+', label: '4+ ⭐' },
+                  { value: '3+', label: '3+ ⭐' },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setRatingFilter(opt.value as typeof ratingFilter)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                      ratingFilter === opt.value
+                        ? 'bg-warning text-warning-foreground'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Categories Horizontal Scroll */}
+      <div className="bg-card border-b border-border px-4 py-3">
+        <CategoryFilter
+          selected={categoryFilter}
+          onChange={setCategoryFilter}
+        />
+      </div>
+
+      {/* Benefits Banner */}
+      <div className="bg-card border-b border-border">
+        <div className="flex overflow-x-auto scrollbar-hide">
+          <div className="flex items-center gap-2 px-4 py-2.5 border-r border-border min-w-max">
+            <Truck size={16} className="text-primary" />
+            <span className="text-xs text-foreground font-medium">Entrega Rápida</span>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2.5 border-r border-border min-w-max">
+            <Shield size={16} className="text-success" />
+            <span className="text-xs text-foreground font-medium">Compra Segura</span>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2.5 border-r border-border min-w-max">
+            <Percent size={16} className="text-destructive" />
+            <span className="text-xs text-foreground font-medium">Ofertas</span>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2.5 min-w-max">
+            <TrendingUp size={16} className="text-warning" />
+            <span className="text-xs text-foreground font-medium">Mais Vendidos</span>
+          </div>
+        </div>
+      </div>
+
+      {/* View Mode Toggle & Results Count */}
+      <div className="flex items-center justify-between px-4 py-2 bg-background">
+        <span className="text-xs text-muted-foreground">
+          {filteredItems.length} produto{filteredItems.length !== 1 ? 's' : ''}
+        </span>
+        <div className="flex gap-1 p-0.5 bg-muted rounded-lg">
+          <button
+            onClick={() => setViewMode('grid')}
+            className={`p-1.5 rounded-md transition-colors ${
+              viewMode === 'grid' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground'
+            }`}
+          >
+            <Grid3X3 size={14} />
+          </button>
+          <button
+            onClick={() => setViewMode('list')}
+            className={`p-1.5 rounded-md transition-colors ${
+              viewMode === 'list' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground'
+            }`}
+          >
+            <List size={14} />
+          </button>
+        </div>
+      </div>
+
       {/* Content */}
-      <div className="flex-1 p-4 overflow-y-auto">
+      <div className="flex-1 px-2 pb-4 overflow-y-auto">
         {loading ? (
           <div className="flex items-center justify-center py-16">
-            <div className="w-10 h-10 border-4 border-success border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : filteredItems.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="w-20 h-20 bg-gradient-to-br from-muted to-muted/50 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-inner">
+          <div className="text-center py-16 px-4">
+            <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
               <ShoppingBag className="text-muted-foreground" size={36} />
             </div>
             <p className="text-foreground font-semibold text-lg mb-1">
-              {searchQuery || categoryFilter || priceFilter !== 'all' || ratingFilter !== 'all'
-                ? 'Nenhum produto encontrado'
-                : 'Nenhum produto disponível'}
+              {searchQuery || categoryFilter ? 'Nenhum produto encontrado' : 'Nenhum produto disponível'}
             </p>
-            <p className="text-sm text-muted-foreground mb-6 max-w-xs mx-auto">
-              {searchQuery || categoryFilter || priceFilter !== 'all' || ratingFilter !== 'all'
-                ? 'Tente ajustar seus filtros de busca'
-                : 'Seja o primeiro a anunciar um produto!'}
+            <p className="text-sm text-muted-foreground mb-6">
+              {searchQuery || categoryFilter ? 'Tente ajustar sua busca' : 'Seja o primeiro a anunciar!'}
             </p>
             <Button
               onClick={() => setActiveModal('sell')}
-              className="bg-gradient-to-r from-success to-success/80 text-success-foreground rounded-2xl px-6 shadow-lg shadow-success/20"
+              className="bg-primary text-primary-foreground rounded-lg px-6"
             >
               <Plus size={18} className="mr-2" /> Anunciar Produto
             </Button>
           </div>
         ) : (
-          <div className="space-y-4">
-            {/* Featured Section */}
+          <div className="space-y-3">
+            {/* Featured Products Carousel */}
             {featuredItems.length > 0 && (
-              <div className="mb-6">
+              <div className="bg-gradient-to-r from-warning/10 to-warning/5 rounded-xl p-3 mx-2">
                 <div className="flex items-center gap-2 mb-3">
                   <Sparkles size={16} className="text-warning" />
-                  <span className="text-sm font-semibold text-foreground">Destaques</span>
+                  <span className="text-sm font-bold text-foreground">🔥 Produtos em Destaque</span>
+                  <ChevronRight size={16} className="text-muted-foreground ml-auto" />
                 </div>
-                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
+                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
                   {featuredItems.map((item) => (
                     <div
                       key={item.id}
-                      className="flex-shrink-0 w-44 bg-gradient-to-br from-card to-card/80 rounded-2xl border border-warning/30 overflow-hidden shadow-lg shadow-warning/10 cursor-pointer hover:scale-[1.02] transition-transform"
+                      className="flex-shrink-0 w-36 bg-card rounded-xl overflow-hidden shadow-md cursor-pointer hover:shadow-lg transition-shadow border border-warning/20"
                       onClick={() => setSelectedProduct(item)}
                     >
-                      <div className="aspect-[4/3] relative bg-muted">
+                      <div className="aspect-square relative bg-muted">
                         {item.image_url ? (
                           <img src={item.image_url} alt={item.title} className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
-                            <ShoppingBag className="text-muted-foreground" size={28} />
+                            <ShoppingBag className="text-muted-foreground" size={24} />
                           </div>
                         )}
-                        <div className="absolute top-2 left-2 px-2 py-0.5 bg-gradient-to-r from-warning to-warning/80 text-warning-foreground text-[10px] font-bold rounded-full flex items-center gap-1">
-                          <Sparkles size={10} /> Destaque
+                        <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-warning text-warning-foreground text-[9px] font-bold rounded">
+                          DESTAQUE
                         </div>
                       </div>
-                      <div className="p-3">
-                        <h4 className="font-semibold text-sm line-clamp-1">{item.title}</h4>
-                        <span className="text-base font-bold text-success">R$ {item.price?.toFixed(0)}</span>
+                      <div className="p-2">
+                        <h4 className="font-medium text-xs line-clamp-2 text-foreground mb-1">{item.title}</h4>
+                        <span className="text-sm font-bold text-primary">
+                          R$ {item.price?.toFixed(2).replace('.', ',')}
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -462,80 +530,89 @@ const MarketHub = () => {
             )}
 
             {/* Product Grid/List */}
-            <div className={viewMode === 'grid' ? 'grid grid-cols-2 gap-3' : 'space-y-3'}>
+            <div className={viewMode === 'grid' ? 'grid grid-cols-2 gap-2 px-2' : 'space-y-2 px-2'}>
               {regularItems.map((item) => (
                 viewMode === 'grid' ? (
+                  // Grid Card - Shopee Style
                   <div
                     key={item.id}
-                    className="bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm hover:shadow-lg hover:border-border transition-all cursor-pointer group"
+                    className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer border border-border/50"
                     onClick={() => setSelectedProduct(item)}
                   >
-                    <div className="aspect-square relative bg-muted overflow-hidden">
+                    <div className="aspect-square relative bg-muted">
                       {item.image_url ? (
                         <img
                           src={item.image_url}
                           alt={item.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
-                          <ShoppingBag className="text-muted-foreground" size={36} />
+                        <div className="w-full h-full flex items-center justify-center bg-muted">
+                          <ShoppingBag className="text-muted-foreground" size={32} />
                         </div>
                       )}
-                      {/* Category Badge */}
-                      {item.category && (
-                        <span className="absolute top-2 left-2 px-2 py-0.5 bg-card/90 backdrop-blur-sm text-[10px] font-medium rounded-full text-foreground">
-                          {getCategoryLabel(item.category)}
-                        </span>
-                      )}
+                      
+                      {/* Favorite Button */}
                       <button
-                        className={`absolute top-2 right-2 p-2 rounded-xl shadow-sm transition-all ${
+                        className={`absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center transition-all ${
                           favorites.has(item.id)
-                            ? 'bg-destructive text-destructive-foreground'
-                            : 'bg-card/90 backdrop-blur-sm hover:bg-card text-muted-foreground hover:text-destructive'
+                            ? 'bg-destructive text-destructive-foreground shadow-md'
+                            : 'bg-black/40 text-white hover:bg-black/60'
                         }`}
                         onClick={(e) => toggleFavorite(e, item.id)}
                       >
-                        <Heart size={16} fill={favorites.has(item.id) ? 'currentColor' : 'none'} />
+                        <Heart size={14} fill={favorites.has(item.id) ? 'currentColor' : 'none'} />
                       </button>
-                      {item.review_count && item.review_count > 0 && (
-                        <div className="absolute bottom-2 left-2 px-2 py-1 bg-card/90 backdrop-blur-sm rounded-lg flex items-center gap-1 shadow-sm">
-                          <Star size={12} className="text-warning fill-warning" />
-                          <span className="text-xs font-semibold text-foreground">{item.avg_rating?.toFixed(1)}</span>
-                          <span className="text-[10px] text-muted-foreground">({item.review_count})</span>
+
+                      {/* Discount Badge (if any) */}
+                      {item.featured && (
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-destructive/90 to-destructive/0 py-1 px-2">
+                          <span className="text-[10px] font-bold text-white">OFERTA</span>
                         </div>
                       )}
                     </div>
                     
-                    <div className="p-3">
-                      <h4 className="font-semibold text-foreground text-sm line-clamp-1 mb-0.5">
+                    <div className="p-2.5">
+                      <h4 className="text-xs font-medium text-foreground line-clamp-2 mb-1.5 min-h-[32px]">
                         {item.title}
                       </h4>
-                      <button
-                        onClick={(e) => handleViewSeller(e, item)}
-                        className="text-[11px] text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 mb-2"
-                      >
-                        <User size={10} />
-                        {item.profiles?.display_name || 'Vendedor'}
-                      </button>
-                      <div className="flex items-center justify-between">
-                        {item.price ? (
-                          <span className="text-base font-bold text-success">
-                            R$ {item.price.toFixed(0)}
-                          </span>
+                      
+                      {/* Price */}
+                      <div className="mb-1.5">
+                        <span className="text-base font-bold text-primary">
+                          R$ {item.price?.toFixed(2).replace('.', ',')}
+                        </span>
+                      </div>
+
+                      {/* Rating & Sales */}
+                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                        {item.review_count && item.review_count > 0 ? (
+                          <div className="flex items-center gap-0.5">
+                            <Star size={10} className="text-warning fill-warning" />
+                            <span>{item.avg_rating?.toFixed(1)}</span>
+                            <span className="text-muted-foreground/70">({item.review_count})</span>
+                          </div>
                         ) : (
-                          <span className="text-xs text-muted-foreground">Consultar</span>
+                          <span className="text-muted-foreground/60">Novo</span>
                         )}
+                        <span className="text-muted-foreground/40">|</span>
+                        <button
+                          onClick={(e) => handleViewSeller(e, item)}
+                          className="hover:text-primary transition-colors truncate max-w-[80px]"
+                        >
+                          {item.profiles?.display_name || 'Loja'}
+                        </button>
                       </div>
                     </div>
                   </div>
                 ) : (
+                  // List Card - Mercado Livre Style
                   <div
                     key={item.id}
-                    className="bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm hover:shadow-lg transition-all cursor-pointer flex"
+                    className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer flex border border-border/50"
                     onClick={() => setSelectedProduct(item)}
                   >
-                    <div className="w-28 h-28 flex-shrink-0 bg-muted relative overflow-hidden">
+                    <div className="w-28 h-28 flex-shrink-0 bg-muted relative">
                       {item.image_url ? (
                         <img src={item.image_url} alt={item.title} className="w-full h-full object-cover" />
                       ) : (
@@ -543,24 +620,21 @@ const MarketHub = () => {
                           <ShoppingBag className="text-muted-foreground" size={24} />
                         </div>
                       )}
-                      {item.review_count && item.review_count > 0 && (
-                        <div className="absolute bottom-1 left-1 px-1.5 py-0.5 bg-card/90 backdrop-blur-sm rounded-lg flex items-center gap-0.5">
-                          <Star size={10} className="text-warning fill-warning" />
-                          <span className="text-[10px] font-semibold">{item.avg_rating?.toFixed(1)}</span>
-                        </div>
-                      )}
+                      <button
+                        className={`absolute top-1.5 right-1.5 w-6 h-6 rounded-full flex items-center justify-center ${
+                          favorites.has(item.id)
+                            ? 'bg-destructive text-destructive-foreground'
+                            : 'bg-black/40 text-white'
+                        }`}
+                        onClick={(e) => toggleFavorite(e, item.id)}
+                      >
+                        <Heart size={12} fill={favorites.has(item.id) ? 'currentColor' : 'none'} />
+                      </button>
                     </div>
                     
-                    <div className="flex-1 p-3 flex flex-col justify-between">
+                    <div className="flex-1 p-3 flex flex-col justify-between min-w-0">
                       <div>
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <h4 className="font-semibold text-foreground text-sm line-clamp-1">{item.title}</h4>
-                          {item.category && (
-                            <span className="px-1.5 py-0.5 bg-muted text-[9px] font-medium rounded text-muted-foreground">
-                              {getCategoryLabel(item.category)}
-                            </span>
-                          )}
-                        </div>
+                        <h4 className="text-sm font-medium text-foreground line-clamp-2 mb-1">{item.title}</h4>
                         <button
                           onClick={(e) => handleViewSeller(e, item)}
                           className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
@@ -570,22 +644,19 @@ const MarketHub = () => {
                         </button>
                       </div>
                       
-                      <div className="flex items-center justify-between mt-2">
-                        {item.price ? (
-                          <span className="text-base font-bold text-success">R$ {item.price.toFixed(0)}</span>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">Consultar</span>
+                      <div className="flex items-end justify-between">
+                        <div>
+                          <span className="text-lg font-bold text-primary block">
+                            R$ {item.price?.toFixed(2).replace('.', ',')}
+                          </span>
+                          <span className="text-[10px] text-success font-medium">Frete grátis</span>
+                        </div>
+                        {item.review_count && item.review_count > 0 && (
+                          <div className="flex items-center gap-1 text-xs">
+                            <Star size={12} className="text-warning fill-warning" />
+                            <span className="font-medium">{item.avg_rating?.toFixed(1)}</span>
+                          </div>
                         )}
-                        <button
-                          className={`p-2 rounded-lg transition-colors ${
-                            favorites.has(item.id)
-                              ? 'bg-destructive/20 text-destructive'
-                              : 'bg-muted hover:bg-destructive/10 text-muted-foreground hover:text-destructive'
-                          }`}
-                          onClick={(e) => toggleFavorite(e, item.id)}
-                        >
-                          <Heart size={14} fill={favorites.has(item.id) ? 'currentColor' : 'none'} />
-                        </button>
                       </div>
                     </div>
                   </div>
@@ -595,6 +666,14 @@ const MarketHub = () => {
           </div>
         )}
       </div>
+
+      {/* Floating Sell Button */}
+      <button
+        onClick={() => setActiveModal('sell')}
+        className="fixed bottom-24 right-4 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg shadow-primary/30 flex items-center justify-center z-30 hover:bg-primary/90 transition-colors active:scale-95"
+      >
+        <Plus size={24} />
+      </button>
 
       {selectedProduct && (
         <ProductDetailModal
