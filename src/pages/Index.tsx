@@ -12,6 +12,7 @@ import ModalsContainer from '@/components/ModalsContainer';
 import { useAppStore } from '@/lib/store';
 import { useAuth } from '@/hooks/useAuth';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { useUnreadNotifications } from '@/hooks/useUnreadNotifications';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('home');
@@ -20,6 +21,7 @@ const Index = () => {
   const { activeModal } = useAppStore();
   const { loading, user } = useAuth();
   const { requestPermission, subscribeToNewMessages, subscribeToMarketplaceActivity } = usePushNotifications();
+  const unreadNotifications = useUnreadNotifications(user?.id);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -79,7 +81,7 @@ const Index = () => {
       <ModalsContainer />
       
       <div className="flex-1 overflow-y-auto overflow-x-hidden">
-        {activeTab === 'home' && <SmartHome />}
+        {activeTab === 'home' && <SmartHome onNavigate={setActiveTab} />}
         {activeTab === 'calendar' && <Calendar />}
         {activeTab === 'community' && <CommunityHub />}
         {activeTab === 'market' && <MarketHub />}
@@ -91,17 +93,25 @@ const Index = () => {
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
+          const showBadge = item.id === 'market' && unreadNotifications > 0;
           return (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all min-w-0 flex-1 ${
+              className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all min-w-0 flex-1 relative ${
                 isActive
                   ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground active:bg-muted'
               }`}
             >
-              <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
+              <div className="relative">
+                <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
+                {showBadge && (
+                  <span className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground text-[8px] font-bold min-w-[14px] h-[14px] rounded-full flex items-center justify-center px-0.5">
+                    {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                  </span>
+                )}
+              </div>
               <span className="text-[9px] font-semibold truncate">{item.label}</span>
             </button>
           );
