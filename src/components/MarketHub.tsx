@@ -577,11 +577,16 @@ const MarketHub = () => {
                         {item.title}
                       </h4>
                       
-                      {/* Price */}
+                      {/* Price with Installments */}
                       <div className="mb-1.5">
                         <span className="text-base font-bold text-primary">
                           R$ {item.price?.toFixed(2).replace('.', ',')}
                         </span>
+                        {item.price && item.price >= 30 && (
+                          <p className="text-[10px] text-success font-medium">
+                            em até {Math.min(10, Math.floor(item.price / 10))}x de R$ {(item.price / Math.min(10, Math.floor(item.price / 10))).toFixed(2).replace('.', ',')}
+                          </p>
+                        )}
                       </div>
 
                       {/* Rating & Sales */}
@@ -649,7 +654,13 @@ const MarketHub = () => {
                           <span className="text-lg font-bold text-primary block">
                             R$ {item.price?.toFixed(2).replace('.', ',')}
                           </span>
-                          <span className="text-[10px] text-success font-medium">Frete grátis</span>
+                          {item.price && item.price >= 30 ? (
+                            <span className="text-[10px] text-success font-medium">
+                              {Math.min(10, Math.floor(item.price / 10))}x R$ {(item.price / Math.min(10, Math.floor(item.price / 10))).toFixed(2).replace('.', ',')} s/ juros
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-success font-medium">Frete grátis</span>
+                          )}
                         </div>
                         {item.review_count && item.review_count > 0 && (
                           <div className="flex items-center gap-1 text-xs">

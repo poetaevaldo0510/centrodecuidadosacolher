@@ -57,7 +57,8 @@ interface AppState {
   selectedLocation: any | null;
   selectedEvent: any | null;
   selectedAction: any | null;
-  chatUser: any | null;
+  chatUser: string | null;
+  chatProduct: { id: string; title: string; price: number | null; image_url: string | null } | null;
   
   // Actions
   setUserData: (data: Partial<AppState>) => void;
@@ -72,7 +73,9 @@ interface AppState {
   setSelectedLocation: (location: any) => void;
   setSelectedEvent: (event: any) => void;
   setSelectedAction: (action: any) => void;
-  setChatUser: (user: any) => void;
+  setChatUser: (user: string | null) => void;
+  setChatProduct: (product: { id: string; title: string; price: number | null; image_url: string | null } | null) => void;
+  openMarketplaceChat: (sellerId: string, product: { id: string; title: string; price: number | null; image_url: string | null }) => void;
   setUserId: (id: string | null) => void;
   setIsOnline: (online: boolean) => void;
   syncToFirebase: () => Promise<void>;
@@ -110,6 +113,7 @@ export const useAppStore = create<AppState>()(
       selectedEvent: null,
       selectedAction: null,
       chatUser: null,
+      chatProduct: null,
       userId: null,
       isOnline: navigator.onLine,
 
@@ -203,6 +207,12 @@ export const useAppStore = create<AppState>()(
       setSelectedEvent: (event) => set({ selectedEvent: event }),
       setSelectedAction: (action) => set({ selectedAction: action }),
       setChatUser: (user) => set({ chatUser: user }),
+      setChatProduct: (product) => set({ chatProduct: product }),
+      openMarketplaceChat: (sellerId, product) => set({ 
+        chatUser: sellerId, 
+        chatProduct: product, 
+        activeModal: 'chat' 
+      }),
       setUserId: (id) => set({ userId: id }),
       setIsOnline: (online) => set({ isOnline: online }),
       
