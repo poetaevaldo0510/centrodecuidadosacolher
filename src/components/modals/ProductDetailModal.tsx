@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, MessageCircle, Heart, Share2, User, Send, Ar
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useRealtimeChat } from '@/hooks/useRealtimeChat';
+import { useAppStore } from '@/lib/store';
 import { toast } from 'sonner';
 
 interface ProductImage {
@@ -41,6 +42,7 @@ interface ProductDetailModalProps {
 }
 
 const ProductDetailModal = ({ product, onClose }: ProductDetailModalProps) => {
+  const { openMarketplaceChat } = useAppStore();
   const [activeTab, setActiveTab] = useState<'details' | 'chat' | 'reviews'>('details');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -514,9 +516,22 @@ const ProductDetailModal = ({ product, onClose }: ProductDetailModalProps) => {
                     </div>
                   )}
                   {product.price ? (
-                    <p className="text-2xl font-bold text-success">
-                      R$ {product.price.toFixed(2)}
-                    </p>
+                    <div className="space-y-1">
+                      <p className="text-2xl font-bold text-success">
+                        R$ {product.price.toFixed(2).replace('.', ',')}
+                      </p>
+                      {product.price >= 30 && (
+                        <div className="bg-success/10 rounded-lg px-3 py-2">
+                          <p className="text-sm text-success font-medium">
+                            em até <span className="font-bold">{Math.min(10, Math.floor(product.price / 10))}x</span> de{' '}
+                            <span className="font-bold">
+                              R$ {(product.price / Math.min(10, Math.floor(product.price / 10))).toFixed(2).replace('.', ',')}
+                            </span>{' '}
+                            sem juros
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   ) : (
                     <p className="text-lg text-muted-foreground">Consultar preço</p>
                   )}
@@ -543,11 +558,23 @@ const ProductDetailModal = ({ product, onClose }: ProductDetailModalProps) => {
                   </div>
                   <Button
                     size="sm"
-                    onClick={() => setActiveTab('chat')}
+                    onClick={() => {
+                      if (currentUserId === product.user_id) {
+                        toast.error('Você não pode conversar consigo mesmo');
+                        return;
+                      }
+                      onClose();
+                      openMarketplaceChat(product.user_id, {
+                        id: product.id,
+                        title: product.title,
+                        price: product.price,
+                        image_url: product.image_url
+                      });
+                    }}
                     className="bg-success hover:bg-success/90 text-white rounded-xl"
                   >
                     <MessageCircle size={16} className="mr-1" />
-                    Contato
+                    Conversar
                   </Button>
                 </div>
 
