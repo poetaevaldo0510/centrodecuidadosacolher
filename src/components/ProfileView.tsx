@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, CheckCircle, BookHeart, File, Lock, Smile, Sun, Moon, CloudRain, LogOut, Flame, Trophy, Shield, Users, BookOpen, Camera, Gift } from 'lucide-react';
+import { User, CheckCircle, BookHeart, File, Lock, Smile, Sun, Moon, CloudRain, LogOut, Flame, Trophy, Shield, Users, BookOpen, Camera, Gift, MessageCircle } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,6 +11,7 @@ import ProfessionalsManager from './ProfessionalsManager';
 import ResourcesLibrary from './ResourcesLibrary';
 import PhotoGallery from './PhotoGallery';
 import RewardsStore from './RewardsStore';
+import ChatHistory from './ChatHistory';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -147,10 +148,14 @@ const ProfileView = () => {
 
       <div className="p-4 flex-1 overflow-y-auto">
         <Tabs defaultValue="geral" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-4 h-auto p-1">
+          <TabsList className="grid w-full grid-cols-6 mb-4 h-auto p-1">
             <TabsTrigger value="geral" className="flex flex-col items-center gap-0.5 py-2 text-[10px]">
               <User size={16} />
               Geral
+            </TabsTrigger>
+            <TabsTrigger value="mensagens" className="flex flex-col items-center gap-0.5 py-2 text-[10px]">
+              <MessageCircle size={16} />
+              Chats
             </TabsTrigger>
             <TabsTrigger value="recursos" className="flex flex-col items-center gap-0.5 py-2 text-[10px]">
               <BookOpen size={16} />
@@ -227,6 +232,10 @@ const ProfileView = () => {
                 <p className="text-xs font-bold text-foreground">Ver Relatórios</p>
               </button>
             </div>
+          </TabsContent>
+
+          <TabsContent value="mensagens" className="mt-0">
+            <ChatHistory />
           </TabsContent>
 
           <TabsContent value="recursos" className="mt-0">
