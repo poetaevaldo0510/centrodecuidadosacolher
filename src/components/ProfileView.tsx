@@ -13,6 +13,7 @@ import PhotoGallery from './PhotoGallery';
 import RewardsStore from './RewardsStore';
 import ChatHistory from './ChatHistory';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { useUnreadChatCount } from '@/hooks/useUnreadChatCount';
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -30,6 +31,7 @@ const ProfileView = () => {
     subscribeToNewMessages,
     subscribeToMarketplaceActivity,
   } = usePushNotifications();
+  const { unreadCount: unreadChatCount } = useUnreadChatCount();
 
   useEffect(() => {
     if (user) {
@@ -153,8 +155,15 @@ const ProfileView = () => {
               <User size={16} />
               Geral
             </TabsTrigger>
-            <TabsTrigger value="mensagens" className="flex flex-col items-center gap-0.5 py-2 text-[10px]">
-              <MessageCircle size={16} />
+            <TabsTrigger value="mensagens" className="flex flex-col items-center gap-0.5 py-2 text-[10px] relative">
+              <div className="relative">
+                <MessageCircle size={16} />
+                {unreadChatCount > 0 && (
+                  <div className="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] bg-destructive text-destructive-foreground text-[8px] font-bold rounded-full flex items-center justify-center px-0.5">
+                    {unreadChatCount > 99 ? '99+' : unreadChatCount}
+                  </div>
+                )}
+              </div>
               Chats
             </TabsTrigger>
             <TabsTrigger value="recursos" className="flex flex-col items-center gap-0.5 py-2 text-[10px]">

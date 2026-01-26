@@ -1,9 +1,26 @@
 import { useState, useEffect } from 'react';
-import { MessageCircle, User, ChevronRight, ShoppingBag, Clock } from 'lucide-react';
+import { MessageCircle, User, ChevronRight, ShoppingBag, Clock, Trash2, MoreVertical, Archive } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAppStore } from '@/lib/store';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { toast } from 'sonner';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface Conversation {
   id: string;
@@ -22,6 +39,9 @@ const ChatHistory = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [conversationToDelete, setConversationToDelete] = useState<Conversation | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     loadConversations();
@@ -119,6 +139,37 @@ const ChatHistory = () => {
     } : null as any);
   };
 
+  const handleDeleteClick = (e: React.MouseEvent, conversation: Conversation) => {
+    e.stopPropagation();
+    setConversationToDelete(conversation);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConversation = async () => {
+    if (!conversationToDelete || !currentUserId) return;
+    
+    setDeleting(true);
+    try {
+      // Delete all messages in this conversation where user is sender or receiver
+      const { error } = await supabase
+        .from('chat_messages')
+        .delete()
+        .or(`and(sender_id.eq.${currentUserId},receiver_id.eq.${conversationToDelete.partnerId}),and(sender_id.eq.${conversationToDelete.partnerId},receiver_id.eq.${currentUserId})`);
+
+      if (error) throw error;
+
+      toast.success('Conversa excluída com sucesso');
+      setConversations(prev => prev.filter(c => c.id !== conversationToDelete.id));
+    } catch (error: any) {
+      console.error('Error deleting conversation:', error);
+      toast.error('Erro ao excluir conversa');
+    } finally {
+      setDeleting(false);
+      setDeleteDialogOpen(false);
+      setConversationToDelete(null);
+    }
+  };
+
   const formatTime = (dateString: string) => {
     try {
       return formatDistanceToNow(new Date(dateString), { 
@@ -153,66 +204,117 @@ const ChatHistory = () => {
   }
 
   return (
-    <div className="space-y-2">
-      {conversations.map((conversation) => (
-        <button
-          key={conversation.id}
-          onClick={() => handleOpenChat(conversation)}
-          className="w-full bg-card border border-border rounded-xl p-3 hover:bg-muted/50 transition-colors text-left flex items-center gap-3"
-        >
-          {/* Avatar */}
-          <div className="relative flex-shrink-0">
-            <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
-              {conversation.partnerAvatar ? (
-                <img
-                  src={conversation.partnerAvatar}
-                  alt=""
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <User size={20} className="text-primary" />
-              )}
-            </div>
-            {conversation.unreadCount > 0 && (
-              <div className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
-                {conversation.unreadCount > 9 ? '9+' : conversation.unreadCount}
+    <>
+      <div className="space-y-2">
+        {conversations.map((conversation) => (
+          <div
+            key={conversation.id}
+            className="w-full bg-card border border-border rounded-xl p-3 hover:bg-muted/50 transition-colors text-left flex items-center gap-3 group"
+          >
+            {/* Clickable area */}
+            <button
+              onClick={() => handleOpenChat(conversation)}
+              className="flex items-center gap-3 flex-1 min-w-0"
+            >
+              {/* Avatar */}
+              <div className="relative flex-shrink-0">
+                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
+                  {conversation.partnerAvatar ? (
+                    <img
+                      src={conversation.partnerAvatar}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <User size={20} className="text-primary" />
+                  )}
+                </div>
+                {conversation.unreadCount > 0 && (
+                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+                    {conversation.unreadCount > 9 ? '9+' : conversation.unreadCount}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
 
-          {/* Content */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-2 mb-0.5">
-              <span className="font-semibold text-foreground truncate">
-                {conversation.partnerName}
-              </span>
-              <span className="text-[10px] text-muted-foreground flex-shrink-0 flex items-center gap-1">
-                <Clock size={10} />
-                {formatTime(conversation.lastMessageTime)}
-              </span>
-            </div>
-            
-            {conversation.productTitle && (
-              <div className="flex items-center gap-1 text-[10px] text-primary mb-0.5">
-                <ShoppingBag size={10} />
-                <span className="truncate">{conversation.productTitle}</span>
+              {/* Content */}
+              <div className="flex-1 min-w-0 text-left">
+                <div className="flex items-center justify-between gap-2 mb-0.5">
+                  <span className="font-semibold text-foreground truncate">
+                    {conversation.partnerName}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground flex-shrink-0 flex items-center gap-1">
+                    <Clock size={10} />
+                    {formatTime(conversation.lastMessageTime)}
+                  </span>
+                </div>
+                
+                {conversation.productTitle && (
+                  <div className="flex items-center gap-1 text-[10px] text-primary mb-0.5">
+                    <ShoppingBag size={10} />
+                    <span className="truncate">{conversation.productTitle}</span>
+                  </div>
+                )}
+                
+                <p className={`text-xs truncate ${
+                  conversation.unreadCount > 0 
+                    ? 'text-foreground font-medium' 
+                    : 'text-muted-foreground'
+                }`}>
+                  {conversation.lastMessage}
+                </p>
               </div>
-            )}
-            
-            <p className={`text-xs truncate ${
-              conversation.unreadCount > 0 
-                ? 'text-foreground font-medium' 
-                : 'text-muted-foreground'
-            }`}>
-              {conversation.lastMessage}
-            </p>
-          </div>
+            </button>
 
-          {/* Arrow */}
-          <ChevronRight size={18} className="text-muted-foreground flex-shrink-0" />
-        </button>
-      ))}
-    </div>
+            {/* Actions Menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button 
+                  className="p-2 rounded-lg hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <MoreVertical size={16} className="text-muted-foreground" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40">
+                <DropdownMenuItem 
+                  onClick={(e) => handleDeleteClick(e as any, conversation)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 size={14} className="mr-2" />
+                  Excluir conversa
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Arrow */}
+            <ChevronRight size={18} className="text-muted-foreground flex-shrink-0" />
+          </div>
+        ))}
+      </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir conversa</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir toda a conversa com{' '}
+              <strong>{conversationToDelete?.partnerName}</strong>? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConversation}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? 'Excluindo...' : 'Excluir'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
 

@@ -44,7 +44,7 @@ export const usePushNotifications = () => {
     if (permission !== 'granted') return () => {};
 
     const channel = supabase
-      .channel('new-messages')
+      .channel('new-messages-notifications')
       .on(
         'postgres_changes',
         {
@@ -54,6 +54,9 @@ export const usePushNotifications = () => {
           filter: `receiver_id=eq.${userId}`,
         },
         async (payload) => {
+          // Don't notify for messages sent by the current user
+          if (payload.new.sender_id === userId) return;
+          
           // Fetch sender info
           const { data: sender } = await supabase
             .from('profiles')
@@ -61,9 +64,16 @@ export const usePushNotifications = () => {
             .eq('id', payload.new.sender_id)
             .single();
 
-          sendNotification('Nova mensagem!', {
-            body: `${sender?.display_name || 'Alguém'} enviou uma mensagem para você`,
-            tag: 'chat-message',
+          const senderName = sender?.display_name || 'Alguém';
+          
+          // Check if message has product context
+          const productMatch = payload.new.message?.match(/\[Sobre: (.+?)\]/);
+          const productInfo = productMatch ? ` sobre "${productMatch[1]}"` : '';
+
+          sendNotification('💬 Nova mensagem!', {
+            body: `${senderName} enviou uma mensagem${productInfo}`,
+            tag: `chat-message-${payload.new.id}`,
+            requireInteraction: true,
           });
         }
       )
