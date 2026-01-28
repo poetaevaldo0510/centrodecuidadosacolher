@@ -1,10 +1,11 @@
-import { BookOpen, Camera, Award, Calendar } from 'lucide-react';
+import { BookOpen, Camera, Award, Calendar, HeartHandshake } from 'lucide-react';
 
 interface QuickAccessShortcutsProps {
   onNavigate: (tab: string) => void;
 }
 
 const shortcuts = [
+  { id: 'support', icon: HeartHandshake, label: 'Apoio', tab: 'profile', section: 'apoio', color: 'bg-pink-500/20 text-pink-600 dark:text-pink-400' },
   { id: 'resources', icon: BookOpen, label: 'Recursos', tab: 'profile', section: 'recursos', color: 'bg-accent/20 text-accent-foreground' },
   { id: 'gallery', icon: Camera, label: 'Galeria', tab: 'profile', section: 'galeria', color: 'bg-secondary/80 text-secondary-foreground' },
   { id: 'store', icon: Award, label: 'Loja', tab: 'profile', section: 'loja', color: 'bg-primary/20 text-primary' },
@@ -23,7 +24,7 @@ const QuickAccessShortcuts = ({ onNavigate }: QuickAccessShortcutsProps) => {
   return (
     <div className="px-4">
       <h3 className="text-sm font-semibold text-muted-foreground mb-3">Acesso Rápido</h3>
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-5 gap-2">
         {shortcuts.map((shortcut) => {
           const Icon = shortcut.icon;
           return (

@@ -200,6 +200,63 @@ export type Database = {
           },
         ]
       }
+      community_recommendations: {
+        Row: {
+          city: string | null
+          created_at: string
+          description: string | null
+          email: string | null
+          id: string
+          instagram: string | null
+          is_online: boolean | null
+          name: string
+          phone: string | null
+          rating_avg: number | null
+          rating_count: number | null
+          specialty: string
+          state: string | null
+          updated_at: string
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: string
+          instagram?: string | null
+          is_online?: boolean | null
+          name: string
+          phone?: string | null
+          rating_avg?: number | null
+          rating_count?: number | null
+          specialty: string
+          state?: string | null
+          updated_at?: string
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: string
+          instagram?: string | null
+          is_online?: boolean | null
+          name?: string
+          phone?: string | null
+          rating_avg?: number | null
+          rating_count?: number | null
+          specialty?: string
+          state?: string | null
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       content_reports: {
         Row: {
           content_id: string
@@ -770,6 +827,41 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      recommendation_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number
+          recommendation_id: string
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating: number
+          recommendation_id: string
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number
+          recommendation_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recommendation_reviews_recommendation_id_fkey"
+            columns: ["recommendation_id"]
+            isOneToOne: false
+            referencedRelation: "community_recommendations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       resources: {
         Row: {
