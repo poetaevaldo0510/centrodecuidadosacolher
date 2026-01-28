@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, CheckCircle, BookHeart, File, Lock, Smile, Sun, Moon, CloudRain, LogOut, Flame, Trophy, Shield, Users, BookOpen, Camera, Gift, MessageCircle } from 'lucide-react';
+import { User, CheckCircle, BookHeart, File, Lock, Smile, Sun, Moon, CloudRain, LogOut, Flame, Trophy, Shield, Users, BookOpen, Camera, Gift, MessageCircle, HeartHandshake } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,6 +12,7 @@ import ResourcesLibrary from './ResourcesLibrary';
 import PhotoGallery from './PhotoGallery';
 import RewardsStore from './RewardsStore';
 import ChatHistory from './ChatHistory';
+import SupportHub from './SupportHub';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useUnreadChatCount } from '@/hooks/useUnreadChatCount';
 import { useNavigate } from 'react-router-dom';
@@ -150,7 +151,7 @@ const ProfileView = () => {
 
       <div className="p-4 flex-1 overflow-y-auto">
         <Tabs defaultValue="geral" className="w-full">
-          <TabsList className="grid w-full grid-cols-6 mb-4 h-auto p-1">
+          <TabsList className="grid w-full grid-cols-7 mb-4 h-auto p-1">
             <TabsTrigger value="geral" className="flex flex-col items-center gap-0.5 py-2 text-[10px]">
               <User size={16} />
               Geral
@@ -165,6 +166,10 @@ const ProfileView = () => {
                 )}
               </div>
               Chats
+            </TabsTrigger>
+            <TabsTrigger value="apoio" className="flex flex-col items-center gap-0.5 py-2 text-[10px]">
+              <HeartHandshake size={16} />
+              Apoio
             </TabsTrigger>
             <TabsTrigger value="recursos" className="flex flex-col items-center gap-0.5 py-2 text-[10px]">
               <BookOpen size={16} />
@@ -245,6 +250,10 @@ const ProfileView = () => {
 
           <TabsContent value="mensagens" className="mt-0">
             <ChatHistory />
+          </TabsContent>
+
+          <TabsContent value="apoio" className="mt-0">
+            <SupportHub />
           </TabsContent>
 
           <TabsContent value="recursos" className="mt-0">
