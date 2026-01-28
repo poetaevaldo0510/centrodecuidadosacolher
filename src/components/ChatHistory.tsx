@@ -1,10 +1,18 @@
-import { useState, useEffect } from 'react';
-import { MessageCircle, User, ChevronRight, ShoppingBag, Clock, Trash2, MoreVertical, Archive } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { MessageCircle, User, ChevronRight, ShoppingBag, Clock, Trash2, MoreVertical, Search, X, Calendar, Filter } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAppStore } from '@/lib/store';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, format, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +29,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { cn } from '@/lib/utils';
 
 interface Conversation {
   id: string;
@@ -42,6 +56,12 @@ const ChatHistory = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<Conversation | null>(null);
   const [deleting, setDeleting] = useState(false);
+  
+  // Search and filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [dateFrom, setDateFrom] = useState<Date | undefined>();
+  const [dateTo, setDateTo] = useState<Date | undefined>();
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
     loadConversations();
@@ -181,6 +201,41 @@ const ChatHistory = () => {
     }
   };
 
+  // Filter conversations based on search and date filters
+  const filteredConversations = useMemo(() => {
+    return conversations.filter((conv) => {
+      // Search by name or product
+      const searchLower = searchQuery.toLowerCase().trim();
+      if (searchLower) {
+        const matchesName = conv.partnerName.toLowerCase().includes(searchLower);
+        const matchesProduct = conv.productTitle?.toLowerCase().includes(searchLower);
+        const matchesMessage = conv.lastMessage.toLowerCase().includes(searchLower);
+        if (!matchesName && !matchesProduct && !matchesMessage) {
+          return false;
+        }
+      }
+
+      // Filter by date range
+      const messageDate = new Date(conv.lastMessageTime);
+      if (dateFrom && isBefore(messageDate, startOfDay(dateFrom))) {
+        return false;
+      }
+      if (dateTo && isAfter(messageDate, endOfDay(dateTo))) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [conversations, searchQuery, dateFrom, dateTo]);
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setDateFrom(undefined);
+    setDateTo(undefined);
+  };
+
+  const hasActiveFilters = searchQuery || dateFrom || dateTo;
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -204,9 +259,116 @@ const ChatHistory = () => {
   }
 
   return (
-    <>
+    <div className="space-y-3">
+      {/* Search Bar */}
+      <div className="relative">
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Buscar por nome, produto ou mensagem..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9 pr-9"
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          >
+            <X size={16} />
+          </button>
+        )}
+      </div>
+
+      {/* Filters Toggle */}
+      <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
+        <CollapsibleTrigger asChild>
+          <Button variant="outline" size="sm" className="w-full justify-between">
+            <span className="flex items-center gap-2">
+              <Filter size={14} />
+              Filtros de data
+              {hasActiveFilters && (
+                <span className="w-2 h-2 rounded-full bg-primary"></span>
+              )}
+            </span>
+            <ChevronRight size={14} className={cn("transition-transform", filtersOpen && "rotate-90")} />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pt-2">
+          <div className="flex flex-col sm:flex-row gap-2">
+            {/* Date From */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="flex-1 justify-start text-left font-normal">
+                  <Calendar size={14} className="mr-2" />
+                  {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "Data inicial"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 z-50" align="start">
+                <CalendarComponent
+                  mode="single"
+                  selected={dateFrom}
+                  onSelect={setDateFrom}
+                  initialFocus
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+
+            {/* Date To */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="flex-1 justify-start text-left font-normal">
+                  <Calendar size={14} className="mr-2" />
+                  {dateTo ? format(dateTo, "dd/MM/yyyy") : "Data final"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 z-50" align="start">
+                <CalendarComponent
+                  mode="single"
+                  selected={dateTo}
+                  onSelect={setDateTo}
+                  initialFocus
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+
+            {/* Clear Filters */}
+            {hasActiveFilters && (
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="text-destructive hover:text-destructive">
+                <X size={14} className="mr-1" />
+                Limpar
+              </Button>
+            )}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+
+      {/* Results Count */}
+      {hasActiveFilters && (
+        <p className="text-xs text-muted-foreground">
+          {filteredConversations.length} de {conversations.length} conversas
+        </p>
+      )}
+
+      {/* Empty filtered state */}
+      {filteredConversations.length === 0 && hasActiveFilters && (
+        <div className="text-center py-8">
+          <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-3">
+            <Search className="text-muted-foreground" size={24} />
+          </div>
+          <h3 className="font-semibold text-foreground mb-1">Nenhum resultado</h3>
+          <p className="text-xs text-muted-foreground">
+            Tente ajustar os filtros de busca
+          </p>
+          <Button variant="link" size="sm" onClick={clearFilters} className="mt-2">
+            Limpar filtros
+          </Button>
+        </div>
+      )}
+      {/* Conversations List */}
       <div className="space-y-2">
-        {conversations.map((conversation) => (
+        {filteredConversations.map((conversation) => (
           <div
             key={conversation.id}
             className="w-full bg-card border border-border rounded-xl p-3 hover:bg-muted/50 transition-colors text-left flex items-center gap-3 group"
@@ -314,7 +476,7 @@ const ChatHistory = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </div>
   );
 };
 
