@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ShoppingBag, Plus, Heart, Star, Sparkles, Grid3X3, List, User, LayoutDashboard, Search, SlidersHorizontal, ChevronRight, TrendingUp, Percent, Truck, Shield, X } from 'lucide-react';
+import { ShoppingBag, Plus, Heart, Star, Sparkles, Grid3X3, List, User, LayoutDashboard, Search, SlidersHorizontal, ChevronRight, TrendingUp, Percent, Truck, Shield, X, Link2 } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -9,6 +9,7 @@ import ProductDetailModal from './modals/ProductDetailModal';
 import FavoritesTab from './marketplace/FavoritesTab';
 import SellerProfile from './marketplace/SellerProfile';
 import SellerDashboard from './marketplace/SellerDashboard';
+import AffiliateDashboard from './marketplace/AffiliateDashboard';
 import CategoryFilter, { PRODUCT_CATEGORIES } from './marketplace/CategoryFilter';
 import NotificationBell from './marketplace/NotificationBell';
 
@@ -43,7 +44,7 @@ const MarketHub = () => {
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [activeTab, setActiveTab] = useState<'browse' | 'favorites' | 'dashboard'>('browse');
+  const [activeTab, setActiveTab] = useState<'browse' | 'favorites' | 'dashboard' | 'affiliate'>('browse');
   const [selectedSeller, setSelectedSeller] = useState<{ id: string; name: string | null; avatar: string | null } | null>(null);
   const [showFilters, setShowFilters] = useState(false);
 
@@ -267,6 +268,15 @@ const MarketHub = () => {
     );
   }
 
+  // Affiliate Dashboard Tab
+  if (activeTab === 'affiliate') {
+    return (
+      <div className="flex flex-col min-h-screen bg-background pb-24 animate-fade-in">
+        <AffiliateDashboard onBack={() => setActiveTab('browse')} />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-muted/30 pb-24 animate-fade-in">
       {/* Shopee-style Header */}
@@ -288,8 +298,16 @@ const MarketHub = () => {
               )}
             </button>
             <button
+              onClick={() => setActiveTab('affiliate')}
+              className="p-2 text-primary-foreground/90 hover:text-primary-foreground transition-colors"
+              title="Programa de Afiliados"
+            >
+              <Link2 size={20} />
+            </button>
+            <button
               onClick={() => setActiveTab('dashboard')}
               className="p-2 text-primary-foreground/90 hover:text-primary-foreground transition-colors"
+              title="Painel do Vendedor"
             >
               <LayoutDashboard size={20} />
             </button>
