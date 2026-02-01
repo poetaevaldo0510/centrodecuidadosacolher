@@ -47,6 +47,107 @@ export type Database = {
         }
         Relationships: []
       }
+      affiliate_links: {
+        Row: {
+          affiliate_code: string
+          clicks: number | null
+          commission_rate: number | null
+          conversions: number | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          product_id: string
+          total_earnings: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          affiliate_code?: string
+          clicks?: number | null
+          commission_rate?: number | null
+          conversions?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          product_id: string
+          total_earnings?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          affiliate_code?: string
+          clicks?: number | null
+          commission_rate?: number | null
+          conversions?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          product_id?: string
+          total_earnings?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_links_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      affiliate_sales: {
+        Row: {
+          affiliate_commission: number
+          affiliate_id: string
+          affiliate_link_id: string
+          created_at: string
+          id: string
+          sale_amount: number
+          sale_id: string
+          seller_id: string
+          status: string
+        }
+        Insert: {
+          affiliate_commission: number
+          affiliate_id: string
+          affiliate_link_id: string
+          created_at?: string
+          id?: string
+          sale_amount: number
+          sale_id: string
+          seller_id: string
+          status?: string
+        }
+        Update: {
+          affiliate_commission?: number
+          affiliate_id?: string
+          affiliate_link_id?: string
+          created_at?: string
+          id?: string
+          sale_amount?: number
+          sale_id?: string
+          seller_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_sales_affiliate_link_id_fkey"
+            columns: ["affiliate_link_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_sales_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       badges: {
         Row: {
           created_at: string | null
@@ -478,6 +579,8 @@ export type Database = {
       }
       marketplace_sales: {
         Row: {
+          affiliate_commission: number | null
+          affiliate_link_id: string | null
           buyer_email: string | null
           buyer_name: string
           buyer_phone: string | null
@@ -498,6 +601,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          affiliate_commission?: number | null
+          affiliate_link_id?: string | null
           buyer_email?: string | null
           buyer_name: string
           buyer_phone?: string | null
@@ -518,6 +623,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          affiliate_commission?: number | null
+          affiliate_link_id?: string | null
           buyer_email?: string | null
           buyer_name?: string
           buyer_phone?: string | null
@@ -538,6 +645,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "marketplace_sales_affiliate_link_id_fkey"
+            columns: ["affiliate_link_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_links"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "marketplace_sales_product_id_fkey"
             columns: ["product_id"]
