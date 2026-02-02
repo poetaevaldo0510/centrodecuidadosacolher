@@ -10,13 +10,15 @@ import {
   Share2,
   Plus,
   Trash2,
-  ExternalLink
+  Sparkles
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import AffiliatePerformanceChart from './AffiliatePerformanceChart';
+import AffiliateRanking from './AffiliateRanking';
 
 interface AffiliateLink {
   id: string;
@@ -56,6 +58,7 @@ const AffiliateDashboard = ({ onBack }: AffiliateDashboardProps) => {
   const [loading, setLoading] = useState(true);
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
   const [showProductSelector, setShowProductSelector] = useState(false);
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'links' | 'ranking'>('dashboard');
   const [stats, setStats] = useState({
     totalLinks: 0,
     totalClicks: 0,
@@ -219,92 +222,213 @@ const AffiliateDashboard = ({ onBack }: AffiliateDashboardProps) => {
           </div>
         </div>
 
-        {/* Commission Info */}
-        <div className="bg-success/10 border border-success/30 rounded-xl p-3 flex items-start gap-2">
-          <DollarSign className="text-success mt-0.5" size={16} />
-          <div className="text-xs">
-            <span className="font-semibold text-success">Comissão de 5% por venda!</span>
-            <p className="text-muted-foreground mt-0.5">
-              A cada venda realizada através do seu link, você recebe 5% do valor.
-            </p>
-          </div>
+        {/* Tab Navigation */}
+        <div className="flex gap-1 bg-muted/50 rounded-xl p-1">
+          <button
+            onClick={() => setActiveTab('dashboard')}
+            className={`flex-1 py-2 px-3 text-xs font-medium rounded-lg transition-all ${
+              activeTab === 'dashboard'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            📊 Dashboard
+          </button>
+          <button
+            onClick={() => setActiveTab('links')}
+            className={`flex-1 py-2 px-3 text-xs font-medium rounded-lg transition-all ${
+              activeTab === 'links'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            🔗 Meus Links
+          </button>
+          <button
+            onClick={() => setActiveTab('ranking')}
+            className={`flex-1 py-2 px-3 text-xs font-medium rounded-lg transition-all ${
+              activeTab === 'ranking'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            🏆 Ranking
+          </button>
         </div>
       </div>
 
       <div className="p-4 space-y-6">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-card p-4 rounded-2xl border border-border/50">
-            <div className="flex items-center gap-2 mb-2">
-              <Link2 className="text-primary" size={16} />
-              <span className="text-xs text-muted-foreground">Links Ativos</span>
+        {/* Dashboard Tab */}
+        {activeTab === 'dashboard' && (
+          <>
+            {/* Commission Info */}
+            <div className="bg-gradient-to-r from-success/10 via-success/5 to-transparent border border-success/30 rounded-xl p-4">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-success/20 rounded-xl">
+                  <Sparkles className="text-success" size={20} />
+                </div>
+                <div>
+                  <span className="font-bold text-success text-lg">Comissão de 5% por venda!</span>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    A cada venda realizada através do seu link, você recebe 5% do valor automaticamente.
+                  </p>
+                </div>
+              </div>
             </div>
-            <span className="text-2xl font-bold text-foreground">{stats.totalLinks}</span>
-          </div>
-          
-          <div className="bg-card p-4 rounded-2xl border border-border/50">
-            <div className="flex items-center gap-2 mb-2">
-              <MousePointerClick className="text-info" size={16} />
-              <span className="text-xs text-muted-foreground">Cliques</span>
-            </div>
-            <span className="text-2xl font-bold text-info">{stats.totalClicks}</span>
-          </div>
-          
-          <div className="bg-card p-4 rounded-2xl border border-border/50">
-            <div className="flex items-center gap-2 mb-2">
-              <Users className="text-accent" size={16} />
-              <span className="text-xs text-muted-foreground">Conversões</span>
-            </div>
-            <span className="text-2xl font-bold text-accent">{stats.totalConversions}</span>
-          </div>
-          
-          <div className="bg-card p-4 rounded-2xl border border-border/50">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="text-success" size={16} />
-              <span className="text-xs text-muted-foreground">Ganhos</span>
-            </div>
-            <span className="text-2xl font-bold text-success">
-              R$ {stats.totalEarnings.toFixed(2)}
-            </span>
-          </div>
-        </div>
 
-        {/* Create New Affiliate Link */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold text-foreground flex items-center gap-2">
-              <Share2 size={18} className="text-primary" />
-              Seus Links de Afiliado
-            </h3>
-            <Button
-              size="sm"
-              onClick={() => setShowProductSelector(!showProductSelector)}
-              className="gap-1"
-            >
-              <Plus size={14} />
-              Novo Link
-            </Button>
-          </div>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-card p-4 rounded-2xl border border-border/50 hover:border-primary/30 transition-colors">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="p-1.5 bg-primary/10 rounded-lg">
+                    <Link2 className="text-primary" size={14} />
+                  </div>
+                  <span className="text-xs text-muted-foreground">Links Ativos</span>
+                </div>
+                <span className="text-2xl font-bold text-foreground">{stats.totalLinks}</span>
+              </div>
+              
+              <div className="bg-card p-4 rounded-2xl border border-border/50 hover:border-info/30 transition-colors">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="p-1.5 bg-info/10 rounded-lg">
+                    <MousePointerClick className="text-info" size={14} />
+                  </div>
+                  <span className="text-xs text-muted-foreground">Cliques</span>
+                </div>
+                <span className="text-2xl font-bold text-info">{stats.totalClicks}</span>
+              </div>
+              
+              <div className="bg-card p-4 rounded-2xl border border-border/50 hover:border-accent/30 transition-colors">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="p-1.5 bg-accent/10 rounded-lg">
+                    <Users className="text-accent" size={14} />
+                  </div>
+                  <span className="text-xs text-muted-foreground">Conversões</span>
+                </div>
+                <span className="text-2xl font-bold text-accent">{stats.totalConversions}</span>
+              </div>
+              
+              <div className="bg-card p-4 rounded-2xl border border-border/50 hover:border-success/30 transition-colors">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="p-1.5 bg-success/10 rounded-lg">
+                    <TrendingUp className="text-success" size={14} />
+                  </div>
+                  <span className="text-xs text-muted-foreground">Ganhos</span>
+                </div>
+                <span className="text-2xl font-bold text-success">
+                  R$ {stats.totalEarnings.toFixed(2)}
+                </span>
+              </div>
+            </div>
 
-          {/* Product Selector */}
-          {showProductSelector && (
-            <div className="bg-card rounded-2xl border border-primary/30 p-4 mb-4 animate-fade-in">
-              <h4 className="font-semibold text-foreground mb-3">Escolha um produto para divulgar:</h4>
-              {availableProducts.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  Nenhum produto disponível para afiliação
-                </p>
-              ) : (
-                <div className="space-y-2 max-h-60 overflow-y-auto">
-                  {availableProducts.map((product) => (
-                    <button
-                      key={product.id}
-                      onClick={() => createAffiliateLink(product.id)}
-                      className="w-full flex items-center gap-3 p-3 bg-muted/30 rounded-xl hover:bg-muted/50 transition-colors text-left"
-                    >
-                      <div className="w-10 h-10 rounded-lg bg-muted overflow-hidden flex-shrink-0">
-                        {product.image_url ? (
-                          <img src={product.image_url} alt={product.title} className="w-full h-full object-cover" />
+            {/* Performance Chart */}
+            <AffiliatePerformanceChart 
+              affiliateLinks={affiliateLinks} 
+              affiliateSales={affiliateSales} 
+            />
+
+            {/* Recent Affiliate Sales */}
+            {affiliateSales.length > 0 && (
+              <div>
+                <h3 className="font-bold text-foreground mb-3 flex items-center gap-2">
+                  <DollarSign size={18} className="text-success" />
+                  Comissões Recentes
+                </h3>
+                
+                <div className="space-y-2">
+                  {affiliateSales.slice(0, 5).map((sale) => (
+                    <div key={sale.id} className="bg-card rounded-xl border border-border/50 p-3 flex items-center justify-between hover:border-success/30 transition-colors">
+                      <div>
+                        <p className="text-sm font-medium text-foreground">
+                          Venda de R$ {Number(sale.sale_amount).toFixed(2)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(sale.created_at).toLocaleDateString('pt-BR')}
+                        </p>
+                      </div>
+                      <Badge className="bg-success/10 text-success border-success/30">
+                        +R$ {Number(sale.affiliate_commission).toFixed(2)}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Links Tab */}
+        {activeTab === 'links' && (
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-foreground flex items-center gap-2">
+                <Share2 size={18} className="text-primary" />
+                Seus Links de Afiliado
+              </h3>
+              <Button
+                size="sm"
+                onClick={() => setShowProductSelector(!showProductSelector)}
+                className="gap-1"
+              >
+                <Plus size={14} />
+                Novo Link
+              </Button>
+            </div>
+
+            {/* Product Selector */}
+            {showProductSelector && (
+              <div className="bg-card rounded-2xl border border-primary/30 p-4 mb-4 animate-fade-in">
+                <h4 className="font-semibold text-foreground mb-3">Escolha um produto para divulgar:</h4>
+                {availableProducts.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    Nenhum produto disponível para afiliação
+                  </p>
+                ) : (
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {availableProducts.map((product) => (
+                      <button
+                        key={product.id}
+                        onClick={() => createAffiliateLink(product.id)}
+                        className="w-full flex items-center gap-3 p-3 bg-muted/30 rounded-xl hover:bg-muted/50 transition-colors text-left"
+                      >
+                        <div className="w-10 h-10 rounded-lg bg-muted overflow-hidden flex-shrink-0">
+                          {product.image_url ? (
+                            <img src={product.image_url} alt={product.title} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                              📦
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-foreground truncate">{product.title}</p>
+                          <p className="text-sm text-success font-bold">R$ {product.price?.toFixed(2)}</p>
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          +5%
+                        </Badge>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Affiliate Links List */}
+            {affiliateLinks.length === 0 ? (
+              <div className="bg-muted/30 rounded-2xl p-6 text-center">
+                <Link2 className="mx-auto text-muted-foreground mb-2" size={32} />
+                <p className="text-sm text-muted-foreground">Você ainda não tem links de afiliado</p>
+                <p className="text-xs text-muted-foreground mt-1">Clique em "Novo Link" para começar a divulgar</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {affiliateLinks.map((link) => (
+                  <div key={link.id} className="bg-card rounded-2xl border border-border/50 p-4 hover:border-primary/30 transition-colors">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-12 h-12 rounded-xl bg-muted overflow-hidden flex-shrink-0">
+                        {link.product?.image_url ? (
+                          <img src={link.product.image_url} alt={link.product.title} className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-muted-foreground">
                             📦
@@ -312,121 +436,64 @@ const AffiliateDashboard = ({ onBack }: AffiliateDashboardProps) => {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-foreground truncate">{product.title}</p>
-                        <p className="text-sm text-success font-bold">R$ {product.price?.toFixed(2)}</p>
+                        <h4 className="font-semibold text-foreground truncate">{link.product?.title}</h4>
+                        <p className="text-sm text-success font-bold">R$ {link.product?.price?.toFixed(2)}</p>
                       </div>
-                      <Badge variant="outline" className="text-xs">
-                        +5%
-                      </Badge>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => deleteAffiliateLink(link.id)}
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    </div>
 
-          {/* Affiliate Links List */}
-          {affiliateLinks.length === 0 ? (
-            <div className="bg-muted/30 rounded-2xl p-6 text-center">
-              <Link2 className="mx-auto text-muted-foreground mb-2" size={32} />
-              <p className="text-sm text-muted-foreground">Você ainda não tem links de afiliado</p>
-              <p className="text-xs text-muted-foreground mt-1">Clique em "Novo Link" para começar a divulgar</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {affiliateLinks.map((link) => (
-                <div key={link.id} className="bg-card rounded-2xl border border-border/50 p-4">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-12 rounded-xl bg-muted overflow-hidden flex-shrink-0">
-                      {link.product?.image_url ? (
-                        <img src={link.product.image_url} alt={link.product.title} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                          📦
-                        </div>
-                      )}
+                    {/* Stats */}
+                    <div className="grid grid-cols-3 gap-2 mb-3 text-center">
+                      <div className="bg-muted/30 rounded-lg p-2">
+                        <p className="text-lg font-bold text-foreground">{link.clicks || 0}</p>
+                        <p className="text-[10px] text-muted-foreground">Cliques</p>
+                      </div>
+                      <div className="bg-muted/30 rounded-lg p-2">
+                        <p className="text-lg font-bold text-foreground">{link.conversions || 0}</p>
+                        <p className="text-[10px] text-muted-foreground">Vendas</p>
+                      </div>
+                      <div className="bg-success/10 rounded-lg p-2">
+                        <p className="text-lg font-bold text-success">R$ {Number(link.total_earnings || 0).toFixed(2)}</p>
+                        <p className="text-[10px] text-muted-foreground">Ganhos</p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-foreground truncate">{link.product?.title}</h4>
-                      <p className="text-sm text-success font-bold">R$ {link.product?.price?.toFixed(2)}</p>
-                    </div>
+
+                    {/* Copy Link Button */}
                     <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => deleteAffiliateLink(link.id)}
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => copyAffiliateLink(link)}
+                      className="w-full gap-2"
                     >
-                      <Trash2 size={16} />
+                      {copiedLink === link.id ? (
+                        <>
+                          <Check size={14} className="text-success" />
+                          Copiado!
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={14} />
+                          Copiar Link de Afiliado
+                        </>
+                      )}
                     </Button>
                   </div>
-
-                  {/* Stats */}
-                  <div className="grid grid-cols-3 gap-2 mb-3 text-center">
-                    <div className="bg-muted/30 rounded-lg p-2">
-                      <p className="text-lg font-bold text-foreground">{link.clicks || 0}</p>
-                      <p className="text-[10px] text-muted-foreground">Cliques</p>
-                    </div>
-                    <div className="bg-muted/30 rounded-lg p-2">
-                      <p className="text-lg font-bold text-foreground">{link.conversions || 0}</p>
-                      <p className="text-[10px] text-muted-foreground">Vendas</p>
-                    </div>
-                    <div className="bg-success/10 rounded-lg p-2">
-                      <p className="text-lg font-bold text-success">R$ {Number(link.total_earnings || 0).toFixed(2)}</p>
-                      <p className="text-[10px] text-muted-foreground">Ganhos</p>
-                    </div>
-                  </div>
-
-                  {/* Copy Link Button */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => copyAffiliateLink(link)}
-                    className="w-full gap-2"
-                  >
-                    {copiedLink === link.id ? (
-                      <>
-                        <Check size={14} className="text-success" />
-                        Copiado!
-                      </>
-                    ) : (
-                      <>
-                        <Copy size={14} />
-                        Copiar Link de Afiliado
-                      </>
-                    )}
-                  </Button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Recent Affiliate Sales */}
-        {affiliateSales.length > 0 && (
-          <div>
-            <h3 className="font-bold text-foreground mb-3 flex items-center gap-2">
-              <DollarSign size={18} className="text-success" />
-              Comissões Recentes
-            </h3>
-            
-            <div className="space-y-2">
-              {affiliateSales.slice(0, 5).map((sale) => (
-                <div key={sale.id} className="bg-card rounded-xl border border-border/50 p-3 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-foreground">
-                      Venda de R$ {Number(sale.sale_amount).toFixed(2)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(sale.created_at).toLocaleDateString('pt-BR')}
-                    </p>
-                  </div>
-                  <Badge className="bg-success/10 text-success border-success/30">
-                    +R$ {Number(sale.affiliate_commission).toFixed(2)}
-                  </Badge>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
+        )}
+
+        {/* Ranking Tab */}
+        {activeTab === 'ranking' && (
+          <AffiliateRanking />
         )}
       </div>
     </div>
