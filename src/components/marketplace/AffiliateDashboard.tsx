@@ -279,16 +279,19 @@ const AffiliateDashboard = ({ onBack }: AffiliateDashboardProps) => {
             {/* Monthly Goals */}
             <AffiliateMonthlyGoals monthlyEarnings={monthlyEarnings} />
 
-            {/* Commission Info */}
+            {/* Commission Info - Dynamically shows current level commission */}
             <div className="bg-gradient-to-r from-success/10 via-success/5 to-transparent border border-success/30 rounded-xl p-4">
               <div className="flex items-start gap-3">
                 <div className="p-2 bg-success/20 rounded-xl">
                   <Sparkles className="text-success" size={20} />
                 </div>
                 <div>
-                  <span className="font-bold text-success text-lg">Comissão de 5% por venda!</span>
+                  <span className="font-bold text-success text-lg">Comissões progressivas por nível!</span>
                   <p className="text-sm text-muted-foreground mt-1">
-                    A cada venda realizada através do seu link, você recebe 5% do valor automaticamente.
+                    Bronze: 5% • Prata: 6% • Ouro: 7% • Diamante: 8%
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Suba de nível para desbloquear comissões maiores!
                   </p>
                 </div>
               </div>

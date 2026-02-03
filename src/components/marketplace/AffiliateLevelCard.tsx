@@ -49,6 +49,9 @@ const AffiliateLevelCard = ({ totalEarnings, compact = false }: AffiliateLevelCa
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <span className="text-white/80 text-xs font-medium">Seu Nível</span>
+              <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                {(currentLevel.commissionRate * 100).toFixed(0)}% comissão
+              </span>
             </div>
             <h3 className="text-xl font-bold text-white tracking-tight">
               Afiliado {currentLevel.name}
@@ -126,10 +129,42 @@ const AffiliateLevelCard = ({ totalEarnings, compact = false }: AffiliateLevelCa
               🎉 Parabéns! Você alcançou o nível máximo!
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              Continue divulgando e aumentando seus ganhos
+              Você ganha <span className="font-bold text-success">{(currentLevel.commissionRate * 100).toFixed(0)}%</span> de comissão em todas as vendas
             </p>
           </div>
         )}
+
+        {/* Level Benefits */}
+        <div className="bg-muted/30 rounded-xl p-3 space-y-2">
+          <p className="text-xs font-semibold text-foreground">Benefícios por Nível:</p>
+          <div className="grid grid-cols-4 gap-1 text-center">
+            {AFFILIATE_LEVELS.map((level) => {
+              const isCurrentOrPassed = totalEarnings >= level.minEarnings;
+              return (
+                <div 
+                  key={level.name}
+                  className={cn(
+                    "py-1.5 px-1 rounded-lg text-[10px]",
+                    isCurrentOrPassed ? level.bgColor : "bg-muted/50"
+                  )}
+                >
+                  <span className={cn(
+                    "font-bold",
+                    isCurrentOrPassed ? level.color : "text-muted-foreground"
+                  )}>
+                    {(level.commissionRate * 100).toFixed(0)}%
+                  </span>
+                  <p className={cn(
+                    "font-medium",
+                    isCurrentOrPassed ? level.color : "text-muted-foreground"
+                  )}>
+                    {level.name}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
         {/* Earnings Display */}
         <div className="flex items-center justify-between pt-2 border-t border-border/50">
