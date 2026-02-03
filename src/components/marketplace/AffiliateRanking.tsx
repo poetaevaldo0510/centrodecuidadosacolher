@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Trophy, Medal, Crown, TrendingUp, Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
+import { getAffiliateLevel } from '@/lib/affiliateLevels';
+import { cn } from '@/lib/utils';
 
 interface RankingEntry {
   user_id: string;
@@ -194,9 +196,26 @@ const AffiliateRanking = () => {
               </div>
               
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-foreground truncate">
-                  {entry.display_name}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="font-medium text-foreground truncate">
+                    {entry.display_name}
+                  </p>
+                  {/* Affiliate Level Badge */}
+                  {(() => {
+                    const level = getAffiliateLevel(entry.total_earnings);
+                    const LevelIcon = level.icon;
+                    return (
+                      <div className={cn(
+                        "inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold",
+                        level.bgColor,
+                        level.color
+                      )}>
+                        <LevelIcon size={10} />
+                        <span>{level.name}</span>
+                      </div>
+                    );
+                  })()}
+                </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <span>{entry.total_sales} vendas</span>
                 </div>

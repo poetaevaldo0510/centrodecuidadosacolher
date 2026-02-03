@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import AffiliatePerformanceChart from './AffiliatePerformanceChart';
 import AffiliateRanking from './AffiliateRanking';
+import AffiliateLevelCard from './AffiliateLevelCard';
 
 interface AffiliateLink {
   id: string;
@@ -261,6 +262,9 @@ const AffiliateDashboard = ({ onBack }: AffiliateDashboardProps) => {
         {/* Dashboard Tab */}
         {activeTab === 'dashboard' && (
           <>
+            {/* Affiliate Level Card */}
+            <AffiliateLevelCard totalEarnings={stats.totalEarnings} />
+
             {/* Commission Info */}
             <div className="bg-gradient-to-r from-success/10 via-success/5 to-transparent border border-success/30 rounded-xl p-4">
               <div className="flex items-start gap-3">
