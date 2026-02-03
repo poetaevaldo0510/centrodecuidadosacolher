@@ -4,6 +4,7 @@ export interface AffiliateLevel {
   name: string;
   minEarnings: number;
   maxEarnings: number;
+  commissionRate: number; // Percentage (e.g., 0.05 = 5%)
   icon: typeof Award;
   color: string;
   bgColor: string;
@@ -17,6 +18,7 @@ export const AFFILIATE_LEVELS: AffiliateLevel[] = [
     name: 'Bronze',
     minEarnings: 0,
     maxEarnings: 99.99,
+    commissionRate: 0.05, // 5%
     icon: Shield,
     color: 'text-amber-700',
     bgColor: 'bg-amber-100',
@@ -28,6 +30,7 @@ export const AFFILIATE_LEVELS: AffiliateLevel[] = [
     name: 'Prata',
     minEarnings: 100,
     maxEarnings: 499.99,
+    commissionRate: 0.06, // 6%
     icon: Medal,
     color: 'text-slate-500',
     bgColor: 'bg-slate-100',
@@ -39,6 +42,7 @@ export const AFFILIATE_LEVELS: AffiliateLevel[] = [
     name: 'Ouro',
     minEarnings: 500,
     maxEarnings: 1999.99,
+    commissionRate: 0.07, // 7%
     icon: Crown,
     color: 'text-yellow-600',
     bgColor: 'bg-yellow-100',
@@ -50,6 +54,7 @@ export const AFFILIATE_LEVELS: AffiliateLevel[] = [
     name: 'Diamante',
     minEarnings: 2000,
     maxEarnings: Infinity,
+    commissionRate: 0.08, // 8%
     icon: Award,
     color: 'text-cyan-500',
     bgColor: 'bg-cyan-100',
