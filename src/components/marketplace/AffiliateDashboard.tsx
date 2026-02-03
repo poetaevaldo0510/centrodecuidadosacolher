@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
   Link2, 
   TrendingUp, 
@@ -20,6 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import AffiliatePerformanceChart from './AffiliatePerformanceChart';
 import AffiliateRanking from './AffiliateRanking';
 import AffiliateLevelCard from './AffiliateLevelCard';
+import AffiliateMonthlyGoals from './AffiliateMonthlyGoals';
 
 interface AffiliateLink {
   id: string;
@@ -66,6 +67,16 @@ const AffiliateDashboard = ({ onBack }: AffiliateDashboardProps) => {
     totalConversions: 0,
     totalEarnings: 0,
   });
+
+  // Calculate monthly earnings from affiliate sales
+  const monthlyEarnings = useMemo(() => {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    return affiliateSales
+      .filter(sale => new Date(sale.created_at) >= startOfMonth)
+      .reduce((sum, sale) => sum + Number(sale.affiliate_commission), 0);
+  }, [affiliateSales]);
 
   useEffect(() => {
     if (user) {
@@ -264,6 +275,9 @@ const AffiliateDashboard = ({ onBack }: AffiliateDashboardProps) => {
           <>
             {/* Affiliate Level Card */}
             <AffiliateLevelCard totalEarnings={stats.totalEarnings} />
+
+            {/* Monthly Goals */}
+            <AffiliateMonthlyGoals monthlyEarnings={monthlyEarnings} />
 
             {/* Commission Info */}
             <div className="bg-gradient-to-r from-success/10 via-success/5 to-transparent border border-success/30 rounded-xl p-4">
