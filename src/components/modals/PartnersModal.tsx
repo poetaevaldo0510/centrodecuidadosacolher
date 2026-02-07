@@ -1,35 +1,85 @@
-import { Heart, Star, Users, ExternalLink, Gift, Trophy, Handshake } from 'lucide-react';
+import { useState } from 'react';
+import { Heart, Star, Users, ExternalLink, Gift, Trophy, Handshake, Send, Loader2 } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import ModalBase from './ModalBase';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+const typeIcons: Record<string, { icon: typeof Trophy; color: string; bgColor: string; label: string }> = {
+  apoiador_ouro: { icon: Trophy, color: 'text-yellow-500', bgColor: 'bg-yellow-50', label: 'Apoiador Ouro' },
+  parceiro_clinico: { icon: Heart, color: 'text-rose-500', bgColor: 'bg-rose-50', label: 'Parceiro Clínico' },
+  parceiro_comercial: { icon: Gift, color: 'text-purple-500', bgColor: 'bg-purple-50', label: 'Parceiro Comercial' },
+  apoiador: { icon: Heart, color: 'text-primary', bgColor: 'bg-primary/10', label: 'Apoiador' },
+};
 
 const PartnersModal = () => {
-  const partners = [
-    {
-      name: 'Instituto Incluir',
-      type: 'Apoiador Ouro',
-      description: 'Apoio institucional e recursos para famílias atípicas',
-      icon: Trophy,
-      color: 'text-yellow-500',
-      bgColor: 'bg-yellow-50',
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    company_name: '',
+    inquiry_type: '',
+    message: '',
+  });
+  const queryClient = useQueryClient();
+
+  // Fetch partners from database
+  const { data: partners, isLoading } = useQuery({
+    queryKey: ['partners'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('partners')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
+      
+      if (error) throw error;
+      return data;
     },
-    {
-      name: 'Clínica Desenvolvimento',
-      type: 'Parceiro Clínico',
-      description: 'Terapias especializadas com desconto para usuários Acolher',
-      icon: Heart,
-      color: 'text-rose-500',
-      bgColor: 'bg-rose-50',
+  });
+
+  // Submit partnership inquiry
+  const submitInquiry = useMutation({
+    mutationFn: async (data: typeof formData) => {
+      const { error } = await supabase
+        .from('partnership_inquiries')
+        .insert([data]);
+      
+      if (error) throw error;
     },
-    {
-      name: 'Loja Sensorial Kids',
-      type: 'Parceiro Comercial',
-      description: 'Produtos sensoriais e materiais adaptativos',
-      icon: Gift,
-      color: 'text-purple-500',
-      bgColor: 'bg-purple-50',
+    onSuccess: () => {
+      toast.success('Solicitação enviada com sucesso! Entraremos em contato em breve.');
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        company_name: '',
+        inquiry_type: '',
+        message: '',
+      });
+      setShowForm(false);
+      queryClient.invalidateQueries({ queryKey: ['partnership_inquiries'] });
     },
-  ];
+    onError: () => {
+      toast.error('Erro ao enviar solicitação. Tente novamente.');
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name || !formData.email || !formData.inquiry_type) {
+      toast.error('Preencha os campos obrigatórios.');
+      return;
+    }
+    submitInquiry.mutate(formData);
+  };
 
   const benefits = [
     'Visibilidade para milhares de famílias',
@@ -37,6 +87,10 @@ const PartnersModal = () => {
     'Destaque no marketplace',
     'Networking com profissionais',
   ];
+
+  const getTypeInfo = (type: string) => {
+    return typeIcons[type] || typeIcons.apoiador;
+  };
 
   return (
     <ModalBase
@@ -64,69 +118,198 @@ const PartnersModal = () => {
             Nossos Parceiros
           </h5>
           
-          {partners.map((partner, index) => (
-            <div
-              key={index}
-              className={`p-4 rounded-xl border border-border ${partner.bgColor} transition-all hover:shadow-md`}
-            >
-              <div className="flex items-start gap-3">
-                <div className={`p-2 rounded-lg bg-background ${partner.color}`}>
-                  <partner.icon size={20} />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h6 className="font-semibold text-foreground">{partner.name}</h6>
-                    <Badge variant="secondary" className="text-xs">
-                      {partner.type}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {partner.description}
-                  </p>
-                </div>
-              </div>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="animate-spin text-primary" size={24} />
             </div>
-          ))}
+          ) : partners && partners.length > 0 ? (
+            partners.map((partner) => {
+              const typeInfo = getTypeInfo(partner.type);
+              const Icon = typeInfo.icon;
+              return (
+                <div
+                  key={partner.id}
+                  className={`p-4 rounded-xl border border-border ${typeInfo.bgColor} transition-all hover:shadow-md`}
+                >
+                  <div className="flex items-start gap-3">
+                    {partner.logo_url ? (
+                      <img 
+                        src={partner.logo_url} 
+                        alt={partner.name} 
+                        className="w-10 h-10 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <div className={`p-2 rounded-lg bg-background ${typeInfo.color}`}>
+                        <Icon size={20} />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h6 className="font-semibold text-foreground">{partner.name}</h6>
+                        <Badge variant="secondary" className="text-xs">
+                          {typeInfo.label}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {partner.description}
+                      </p>
+                      {partner.website_url && (
+                        <a 
+                          href={partner.website_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-xs text-primary hover:underline inline-flex items-center gap-1 mt-2"
+                        >
+                          <ExternalLink size={12} />
+                          Visitar site
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              Nenhum parceiro cadastrado ainda.
+            </p>
+          )}
         </div>
 
-        {/* Become a Partner */}
-        <div className="p-4 bg-muted/50 rounded-xl border border-border">
-          <h5 className="font-medium text-foreground mb-3 flex items-center gap-2">
-            <Handshake className="text-primary" size={18} />
-            Seja um Parceiro ou Apoiador
-          </h5>
-          
-          <p className="text-sm text-muted-foreground mb-3">
-            Quer fazer parte dessa rede de apoio? Confira os benefícios:
-          </p>
-          
-          <ul className="space-y-2 mb-4">
-            {benefits.map((benefit, index) => (
-              <li key={index} className="flex items-center gap-2 text-sm text-foreground">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                {benefit}
-              </li>
-            ))}
-          </ul>
+        {/* Contact Form Section */}
+        {!showForm ? (
+          <div className="p-4 bg-muted/50 rounded-xl border border-border">
+            <h5 className="font-medium text-foreground mb-3 flex items-center gap-2">
+              <Handshake className="text-primary" size={18} />
+              Seja um Parceiro ou Apoiador
+            </h5>
+            
+            <p className="text-sm text-muted-foreground mb-3">
+              Quer fazer parte dessa rede de apoio? Confira os benefícios:
+            </p>
+            
+            <ul className="space-y-2 mb-4">
+              {benefits.map((benefit, index) => (
+                <li key={index} className="flex items-center gap-2 text-sm text-foreground">
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  {benefit}
+                </li>
+              ))}
+            </ul>
 
-          <div className="flex flex-col sm:flex-row gap-2">
             <Button 
-              className="flex-1 gap-2"
-              onClick={() => window.open('https://wa.me/5511999999999?text=Olá! Gostaria de ser parceiro do Acolher', '_blank')}
+              className="w-full gap-2"
+              onClick={() => setShowForm(true)}
             >
-              <Heart size={16} />
-              Quero ser Apoiador
-            </Button>
-            <Button 
-              variant="outline" 
-              className="flex-1 gap-2"
-              onClick={() => window.open('https://wa.me/5511999999999?text=Olá! Tenho interesse em parceria comercial com o Acolher', '_blank')}
-            >
-              <ExternalLink size={16} />
-              Parceria Comercial
+              <Send size={16} />
+              Quero ser Parceiro
             </Button>
           </div>
-        </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="p-4 bg-muted/50 rounded-xl border border-border space-y-4">
+            <h5 className="font-medium text-foreground flex items-center gap-2">
+              <Send className="text-primary" size={18} />
+              Formulário de Interesse
+            </h5>
+
+            <div className="grid gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome Completo *</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Seu nome"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">E-mail *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  placeholder="seu@email.com"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone">Telefone</Label>
+                <Input
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  placeholder="(11) 99999-9999"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="company">Empresa/Instituição</Label>
+                <Input
+                  id="company"
+                  value={formData.company_name}
+                  onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
+                  placeholder="Nome da empresa"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="type">Tipo de Parceria *</Label>
+                <Select
+                  value={formData.inquiry_type}
+                  onValueChange={(value) => setFormData({ ...formData, inquiry_type: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="apoiador">Apoiador</SelectItem>
+                    <SelectItem value="parceiro_comercial">Parceiro Comercial</SelectItem>
+                    <SelectItem value="parceiro_clinico">Parceiro Clínico</SelectItem>
+                    <SelectItem value="outro">Outro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="message">Mensagem</Label>
+                <Textarea
+                  id="message"
+                  value={formData.message}
+                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                  placeholder="Conte-nos mais sobre você e seu interesse..."
+                  rows={3}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="flex-1"
+                onClick={() => setShowForm(false)}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                type="submit" 
+                className="flex-1 gap-2"
+                disabled={submitInquiry.isPending}
+              >
+                {submitInquiry.isPending ? (
+                  <Loader2 className="animate-spin" size={16} />
+                ) : (
+                  <Send size={16} />
+                )}
+                Enviar
+              </Button>
+            </div>
+          </form>
+        )}
 
         {/* Gratitude Message */}
         <div className="text-center py-3">

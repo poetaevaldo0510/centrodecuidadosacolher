@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, CheckCircle, BookHeart, File, Lock, Smile, Sun, Moon, CloudRain, LogOut, Flame, Trophy, Shield, Users, BookOpen, Camera, Gift, MessageCircle, HeartHandshake } from 'lucide-react';
+import { User, CheckCircle, BookHeart, File, Lock, Smile, Sun, Moon, CloudRain, LogOut, Flame, Trophy, Shield, Users, BookOpen, Camera, Gift, MessageCircle, HeartHandshake, Handshake } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -244,6 +244,14 @@ const ProfileView = () => {
               >
                 <File className="text-accent mb-1" size={18} />
                 <p className="text-xs font-bold text-foreground">Ver Relatórios</p>
+              </button>
+              <button
+                onClick={() => setActiveModal('partners')}
+                className="bg-card p-3 rounded-xl border border-border hover:shadow-md transition text-left col-span-2"
+              >
+                <Handshake className="text-purple-500 mb-1" size={18} />
+                <p className="text-xs font-bold text-foreground">Parceiros & Apoiadores</p>
+                <p className="text-[10px] text-muted-foreground">Conheça quem apoia o Acolher</p>
               </button>
             </div>
           </TabsContent>
