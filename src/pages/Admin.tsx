@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, Activity, TrendingUp, Calendar, MessageSquare, ShoppingBag, ChevronLeft, Shield, Clock, Eye, Flag, Ban } from 'lucide-react';
+import { Users, Activity, TrendingUp, Calendar, MessageSquare, ShoppingBag, ChevronLeft, Shield, Clock, Eye, Flag, Ban, Handshake } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import AdminCharts from '@/components/AdminCharts';
 import ContentModeration from '@/components/ContentModeration';
 import BlockedUsersManager from '@/components/BlockedUsersManager';
+import PartnersManager from '@/components/PartnersManager';
 
 interface Stats {
   totalUsers: number;
@@ -50,7 +51,7 @@ const Admin = () => {
   const [users, setUsers] = useState<UserData[]>([]);
   const [activities, setActivities] = useState<ActivityLog[]>([]);
   const initialTab = searchParams.get('tab') as any || 'overview';
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'activity' | 'charts' | 'moderation' | 'blocked'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'activity' | 'charts' | 'moderation' | 'blocked' | 'partners'>(initialTab);
 
   useEffect(() => {
     checkAdminStatus();
@@ -181,6 +182,7 @@ const Admin = () => {
           { id: 'charts', label: '📈 Gráficos' },
           { id: 'moderation', label: '🚩 Denúncias' },
           { id: 'blocked', label: '🚫 Bloqueios' },
+          { id: 'partners', label: '🤝 Parceiros' },
           { id: 'users', label: '👥 Usuários' },
           { id: 'activity', label: '📋 Atividade' },
         ].map((tab) => (
@@ -305,6 +307,9 @@ const Admin = () => {
 
       {/* Blocked Users Tab */}
       {activeTab === 'blocked' && <BlockedUsersManager />}
+
+      {/* Partners Tab */}
+      {activeTab === 'partners' && <PartnersManager />}
     </div>
   );
 };
