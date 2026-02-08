@@ -18,6 +18,7 @@ import {
   Shield,
   MessageCircle,
   Quote,
+  Handshake,
 } from 'lucide-react';
 import {
   Accordion,
@@ -780,6 +781,12 @@ const Landing = () => {
                 <a href="#" className="hover:text-background">
                   Planos e Preços
                 </a>
+              </li>
+              <li>
+                <Link to="/app?openPartners=true" className="hover:text-background flex items-center gap-1">
+                  <Handshake size={14} />
+                  Parceiros & Apoiadores
+                </Link>
               </li>
             </ul>
           </div>
