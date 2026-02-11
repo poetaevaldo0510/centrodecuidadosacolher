@@ -53,6 +53,15 @@ const PartnersModal = () => {
         .insert([data]);
       
       if (error) throw error;
+
+      // Notify admins via edge function
+      try {
+        await supabase.functions.invoke('notify-partnership', {
+          body: data,
+        });
+      } catch (e) {
+        console.error('Failed to notify admins:', e);
+      }
     },
     onSuccess: () => {
       toast.success('Solicitação enviada com sucesso! Entraremos em contato em breve.');

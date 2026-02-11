@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Heart,
   Zap,
@@ -19,6 +21,7 @@ import {
   MessageCircle,
   Quote,
   Handshake,
+  ExternalLink,
 } from 'lucide-react';
 import {
   Accordion,
@@ -699,6 +702,9 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Partners Section */}
+      <PartnersSection />
+
       {/* CTA Section - PCH Style */}
       <section className="py-20 bg-background">
         <div 
@@ -817,6 +823,88 @@ const Landing = () => {
         </div>
       </footer>
     </div>
+  );
+};
+
+const PartnersSection = () => {
+  const partnersSection = useIntersectionObserver();
+  
+  const { data: partners } = useQuery({
+    queryKey: ['landing-partners'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('partners')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  if (!partners || partners.length === 0) return null;
+
+  return (
+    <section className="py-20 bg-muted/30 border-y border-border">
+      <div
+        ref={partnersSection.ref}
+        className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 transition-all duration-1000 ${
+          partnersSection.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+        }`}
+      >
+        <div className="text-center mb-12">
+          <span className="inline-block py-1 px-3 rounded-full bg-primary/10 text-primary text-xs font-bold tracking-wide mb-4 border border-primary/20">
+            🤝 Quem acredita no Acolher
+          </span>
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+            Nossos Parceiros & Apoiadores
+          </h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Empresas e instituições que caminham conosco na missão de acolher famílias atípicas.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+          {partners.map((partner) => (
+            <a
+              key={partner.id}
+              href={partner.website_url || '#'}
+              target={partner.website_url ? '_blank' : undefined}
+              rel="noopener noreferrer"
+              className="group flex flex-col items-center justify-center p-6 bg-card rounded-2xl border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300"
+            >
+              {partner.logo_url ? (
+                <img
+                  src={partner.logo_url}
+                  alt={partner.name}
+                  className="w-20 h-20 object-contain rounded-xl mb-3 group-hover:scale-105 transition-transform"
+                />
+              ) : (
+                <div className="w-20 h-20 bg-primary/10 rounded-xl flex items-center justify-center mb-3 text-2xl font-bold text-primary group-hover:scale-105 transition-transform">
+                  {partner.name.charAt(0)}
+                </div>
+              )}
+              <span className="text-sm font-medium text-foreground text-center leading-tight">{partner.name}</span>
+              {partner.website_url && (
+                <span className="text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity mt-1 flex items-center gap-1">
+                  <ExternalLink size={10} /> Visitar
+                </span>
+              )}
+            </a>
+          ))}
+        </div>
+
+        <div className="text-center mt-10">
+          <Link
+            to="/app?openPartners=true"
+            className="inline-flex items-center gap-2 text-primary hover:text-primary/80 font-medium transition"
+          >
+            <Handshake size={18} />
+            Quero ser parceiro
+          </Link>
+        </div>
+      </div>
+    </section>
   );
 };
 
