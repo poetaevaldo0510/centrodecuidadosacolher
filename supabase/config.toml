@@ -11,3 +11,6 @@ verify_jwt = true
 
 [functions.push-notifications]
 verify_jwt = true
+
+[functions.notify-partnership]
+verify_jwt = false
