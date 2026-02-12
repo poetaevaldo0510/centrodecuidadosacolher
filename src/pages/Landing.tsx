@@ -864,34 +864,40 @@ const PartnersSection = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-          {partners.map((partner) => (
-            <a
-              key={partner.id}
-              href={partner.website_url || '#'}
-              target={partner.website_url ? '_blank' : undefined}
-              rel="noopener noreferrer"
-              className="group flex flex-col items-center justify-center p-6 bg-card rounded-2xl border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300"
-            >
-              {partner.logo_url ? (
-                <img
-                  src={partner.logo_url}
-                  alt={partner.name}
-                  className="w-20 h-20 object-contain rounded-xl mb-3 group-hover:scale-105 transition-transform"
-                />
-              ) : (
-                <div className="w-20 h-20 bg-primary/10 rounded-xl flex items-center justify-center mb-3 text-2xl font-bold text-primary group-hover:scale-105 transition-transform">
-                  {partner.name.charAt(0)}
-                </div>
-              )}
-              <span className="text-sm font-medium text-foreground text-center leading-tight">{partner.name}</span>
-              {partner.website_url && (
-                <span className="text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity mt-1 flex items-center gap-1">
-                  <ExternalLink size={10} /> Visitar
-                </span>
-              )}
-            </a>
-          ))}
+        <div className="relative overflow-hidden">
+          {/* Fade edges */}
+          <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-muted/30 to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-muted/30 to-transparent z-10 pointer-events-none" />
+          
+          <div className="flex animate-[scroll_30s_linear_infinite] hover:[animation-play-state:paused] w-max">
+            {[...partners, ...partners].map((partner, i) => (
+              <a
+                key={`${partner.id}-${i}`}
+                href={partner.website_url || '#'}
+                target={partner.website_url ? '_blank' : undefined}
+                rel="noopener noreferrer"
+                className="group flex flex-col items-center justify-center p-6 bg-card rounded-2xl border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300 mx-3 min-w-[160px]"
+              >
+                {partner.logo_url ? (
+                  <img
+                    src={partner.logo_url}
+                    alt={partner.name}
+                    className="w-20 h-20 object-contain rounded-xl mb-3 group-hover:scale-105 transition-transform"
+                  />
+                ) : (
+                  <div className="w-20 h-20 bg-primary/10 rounded-xl flex items-center justify-center mb-3 text-2xl font-bold text-primary group-hover:scale-105 transition-transform">
+                    {partner.name.charAt(0)}
+                  </div>
+                )}
+                <span className="text-sm font-medium text-foreground text-center leading-tight">{partner.name}</span>
+                {partner.website_url && (
+                  <span className="text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity mt-1 flex items-center gap-1">
+                    <ExternalLink size={10} /> Visitar
+                  </span>
+                )}
+              </a>
+            ))}
+          </div>
         </div>
 
         <div className="text-center mt-10">
