@@ -5,6 +5,8 @@ export const useIntersectionObserver = (options?: IntersectionObserverInit) => {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (isVisible || !ref.current) return;
+
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) {
         setIsVisible(true);
@@ -15,14 +17,12 @@ export const useIntersectionObserver = (options?: IntersectionObserverInit) => {
       ...options,
     });
 
-    if (ref.current) {
-      observer.observe(ref.current);
-    }
+    observer.observe(ref.current);
 
     return () => {
       observer.disconnect();
     };
-  }, [options]);
+  }, [options, isVisible]);
 
   return { ref, isVisible };
 };

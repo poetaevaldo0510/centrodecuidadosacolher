@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/accordion";
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 
+// Landing page component
 const Landing = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [email, setEmail] = useState("");
@@ -827,8 +828,6 @@ const Landing = () => {
 };
 
 const PartnersSection = () => {
-  const partnersSection = useIntersectionObserver();
-  
   const { data: partners } = useQuery({
     queryKey: ['landing-partners'],
     queryFn: async () => {
@@ -846,12 +845,7 @@ const PartnersSection = () => {
 
   return (
     <section className="py-20 bg-muted/30 border-y border-border">
-      <div
-        ref={partnersSection.ref}
-        className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 transition-all duration-1000 ${
-          partnersSection.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        }`}
-      >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in">
         <div className="text-center mb-12">
           <span className="inline-block py-1 px-3 rounded-full bg-primary/10 text-primary text-xs font-bold tracking-wide mb-4 border border-primary/20">
             🤝 Quem acredita no Acolher
@@ -865,7 +859,6 @@ const PartnersSection = () => {
         </div>
 
         <div className="relative overflow-hidden">
-          {/* Fade edges */}
           <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-muted/30 to-transparent z-10 pointer-events-none" />
           <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-muted/30 to-transparent z-10 pointer-events-none" />
           
