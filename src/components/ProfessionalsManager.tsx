@@ -11,7 +11,12 @@ import {
   Check,
   X,
   Shield,
-  Star
+  Star,
+  Send,
+  Copy,
+  Brain,
+  BookOpen,
+  Activity
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -35,12 +40,19 @@ interface Professional {
   is_active: boolean;
   created_at: string;
   average_rating?: number;
+  invitation_status?: string | null;
+  invitation_token?: string | null;
+  invited_at?: string | null;
 }
 
 const PROFESSIONAL_TYPES = [
   { value: 'enfermeira', label: 'Enfermeira(o)', icon: Stethoscope },
   { value: 'cuidador', label: 'Cuidador(a)', icon: Heart },
   { value: 'terapeuta', label: 'Terapeuta', icon: Users },
+  { value: 'fonoaudiologo', label: 'Fonoaudiólogo(a)', icon: Activity },
+  { value: 'psicologo', label: 'Psicólogo(a)', icon: Brain },
+  { value: 'fisioterapeuta', label: 'Fisioterapeuta', icon: Activity },
+  { value: 'pedagogo', label: 'Pedagogo(a)', icon: BookOpen },
   { value: 'outro', label: 'Outro', icon: Users }
 ];
 
@@ -212,8 +224,43 @@ const ProfessionalsManager = () => {
     }
   };
 
+  const getInviteStatusBadge = (status: string | null | undefined) => {
+    switch (status) {
+      case 'sent':
+        return <Badge variant="secondary" className="text-[10px] bg-warning/10 text-warning border-warning/30">Convite Enviado</Badge>;
+      case 'accepted':
+        return <Badge variant="secondary" className="text-[10px] bg-success/10 text-success border-success/30">Convite Aceito</Badge>;
+      default:
+        return null;
+    }
+  };
+
+  const sendInvite = async (prof: Professional) => {
+    if (!prof.email) {
+      toast.error('Este profissional não tem email cadastrado');
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('invite-professional', {
+        body: { professional_id: prof.id },
+      });
+
+      if (error) throw error;
+
+      if (data?.invite_link) {
+        await navigator.clipboard.writeText(data.invite_link);
+        toast.success(`Link de convite copiado! Envie para ${prof.name} via WhatsApp ou email.`);
+        loadProfessionals();
+      }
+    } catch (error: any) {
+      console.error('Error sending invite:', error);
+      toast.error('Erro ao gerar convite');
+    }
+  };
+
   const getTypeInfo = (typeValue: string) => {
-    return PROFESSIONAL_TYPES.find(t => t.value === typeValue) || PROFESSIONAL_TYPES[3];
+    return PROFESSIONAL_TYPES.find(t => t.value === typeValue) || PROFESSIONAL_TYPES[PROFESSIONAL_TYPES.length - 1];
   };
 
   if (loading) {
@@ -458,6 +505,25 @@ const ProfessionalsManager = () => {
                           "{prof.notes}"
                         </p>
                       )}
+
+                      {/* Invitation status & invite button */}
+                      <div className="flex items-center gap-2 mt-2 flex-wrap">
+                        {getInviteStatusBadge(prof.invitation_status)}
+                        {prof.email && prof.invitation_status !== 'accepted' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs gap-1"
+                            onClick={() => sendInvite(prof)}
+                          >
+                            {prof.invitation_status === 'sent' ? (
+                              <><Copy size={10} /> Copiar Link</>
+                            ) : (
+                              <><Send size={10} /> Enviar Convite</>
+                            )}
+                          </Button>
+                        )}
+                      </div>
                     </div>
                     
                     <div className="flex flex-col gap-1">
