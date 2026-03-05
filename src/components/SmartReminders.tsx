@@ -69,12 +69,7 @@ const SmartReminders = () => {
     }
   };
 
-  useEffect(() => {
-    // Auto-load on first render if user is logged in
-    if (user && !aiResponse) {
-      loadSmartReminders();
-    }
-  }, [user]);
+  // AI analysis is now on-demand only - triggered by clicking "Analisar Padrões"
 
   return (
     <div className="bg-gradient-to-br from-primary/5 to-accent/5 p-5 rounded-2xl border border-primary/20 space-y-4">

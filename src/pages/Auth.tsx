@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,9 @@ import { toast } from 'sonner';
 import { Heart, Loader2 } from 'lucide-react';
 
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [searchParams] = useSearchParams();
+  const inviteToken = searchParams.get('invite');
+  const [isLogin, setIsLogin] = useState(!inviteToken); // Default to signup if invite token
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -25,8 +27,25 @@ const Auth = () => {
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session) {
+        // If there's an invite token, link the professional record
+        if (inviteToken) {
+          try {
+            const { error } = await supabase
+              .from('professionals')
+              .update({ 
+                user_id: session.user.id,
+                invitation_status: 'accepted' 
+              })
+              .eq('invitation_token', inviteToken);
+            
+            if (error) console.error('Error linking invite:', error);
+            else toast.success('Convite aceito! Você foi vinculado como profissional.');
+          } catch (e) {
+            console.error('Error processing invite:', e);
+          }
+        }
         navigate('/app');
       }
     });
