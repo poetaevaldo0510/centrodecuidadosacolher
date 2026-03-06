@@ -819,8 +819,14 @@ const Landing = () => {
             </ul>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto px-4 mt-12 pt-8 border-t border-background/10 text-center text-xs">
+        <div className="max-w-7xl mx-auto px-4 mt-12 pt-8 border-t border-background/10 text-center text-xs space-y-2">
           <p>© 2025 Acolher Tecnologia Ltda. Todos os direitos reservados. Feito com ❤️ no Brasil.</p>
+          <Link
+            to="/admin"
+            className="inline-block text-muted-foreground/50 hover:text-primary/70 transition-colors text-[10px] tracking-wider"
+          >
+            Criado por Evaldo.os
+          </Link>
         </div>
       </footer>
     </div>
