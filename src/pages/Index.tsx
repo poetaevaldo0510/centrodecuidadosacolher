@@ -89,33 +89,41 @@ const Index = () => {
       </div>
 
       {/* Bottom Navigation - Otimizada para mobile */}
-      <nav className="bg-card border-t border-border px-1 py-2 flex justify-around items-center shadow-xl z-20 safe-area-pb">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeTab === item.id;
-          const showBadge = item.id === 'market' && unreadNotifications > 0;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all min-w-0 flex-1 relative ${
-                isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground active:bg-muted'
-              }`}
-            >
-              <div className="relative">
-                <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
-                {showBadge && (
-                  <span className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground text-[8px] font-bold min-w-[14px] h-[14px] rounded-full flex items-center justify-center px-0.5">
-                    {unreadNotifications > 9 ? '9+' : unreadNotifications}
-                  </span>
-                )}
-              </div>
-              <span className="text-[9px] font-semibold truncate">{item.label}</span>
-            </button>
-          );
-        })}
+      <nav className="bg-card border-t border-border px-1 py-2 flex flex-col items-center shadow-xl z-20 safe-area-pb">
+        <div className="flex justify-around items-center w-full">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            const showBadge = item.id === 'market' && unreadNotifications > 0;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all min-w-0 flex-1 relative ${
+                  isActive
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:text-foreground active:bg-muted'
+                }`}
+              >
+                <div className="relative">
+                  <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
+                  {showBadge && (
+                    <span className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground text-[8px] font-bold min-w-[14px] h-[14px] rounded-full flex items-center justify-center px-0.5">
+                      {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                    </span>
+                  )}
+                </div>
+                <span className="text-[9px] font-semibold truncate">{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+        <a
+          href="/admin"
+          className="text-muted-foreground/40 hover:text-primary/60 transition-colors text-[8px] tracking-wider mt-0.5"
+        >
+          Criado por Evaldo.os
+        </a>
       </nav>
     </div>
   );
