@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Heart, 
   ArrowLeft, 
@@ -33,6 +33,12 @@ import {
 } from '@/components/ui/accordion';
 
 const Services = () => {
+  useEffect(() => {
+    document.title = 'Serviços - Acolher | Cuidado com Dignidade';
+    const meta = document.querySelector('meta[name="description"]');
+    if (meta) meta.setAttribute('content', 'Conheça os serviços do Centro Acolher: enfermagem 24h, atividades terapêuticas, alimentação balanceada, acompanhamento familiar e suporte emocional.');
+    return () => { document.title = 'Acolher - Cuidando de Quem Cuida'; };
+  }, []);
   const heroSection = useIntersectionObserver();
   const servicesSection = useIntersectionObserver();
   const testimonialsSection = useIntersectionObserver();
