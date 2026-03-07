@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, CheckCircle, BookHeart, File, Lock, Smile, Sun, Moon, CloudRain, LogOut, Flame, Trophy, Shield, Users, BookOpen, Camera, Gift, MessageCircle, HeartHandshake, Handshake } from 'lucide-react';
+import { User, CheckCircle, BookHeart, File, Lock, Smile, Sun, Moon, CloudRain, LogOut, Flame, Trophy, Shield, Users, BookOpen, Camera, Gift, MessageCircle, HeartHandshake, Handshake, Bell, BellOff, SunMedium, MoonStar } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,6 +17,7 @@ import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useUnreadChatCount } from '@/hooks/useUnreadChatCount';
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useTheme } from 'next-themes';
 
 const ProfileView = () => {
   const { setActiveModal, triggerReward, points, streak } = useAppStore();
@@ -33,6 +34,7 @@ const ProfileView = () => {
     subscribeToMarketplaceActivity,
   } = usePushNotifications();
   const { unreadCount: unreadChatCount } = useUnreadChatCount();
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     if (user) {
@@ -137,6 +139,13 @@ const ProfileView = () => {
               <Shield size={12} /> Admin
             </button>
           )}
+          <button
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            className="bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 border border-white/30 hover:bg-white/20 transition-colors"
+          >
+            {theme === 'dark' ? <SunMedium size={12} /> : <MoonStar size={12} />}
+            {theme === 'dark' ? 'Claro' : 'Escuro'}
+          </button>
           <Button
             onClick={handleLogout}
             variant="outline"
@@ -199,8 +208,21 @@ const ProfileView = () => {
                     <p className="text-xs text-success font-bold">✓ Ativadas</p>
                   </div>
                 ) : permission === 'denied' ? (
-                  <div className="bg-destructive/10 p-2 rounded-lg border border-destructive/20">
-                    <p className="text-xs text-destructive font-bold">✗ Bloqueadas</p>
+                  <div className="bg-destructive/10 p-2 rounded-lg border border-destructive/20 space-y-2">
+                    <p className="text-xs text-destructive font-bold flex items-center gap-1"><BellOff size={12} /> Bloqueadas pelo navegador</p>
+                    <p className="text-[10px] text-muted-foreground">Acesse as configurações do navegador para desbloquear as notificações deste site.</p>
+                    <button
+                      onClick={() => {
+                        requestPermission().then((granted) => {
+                          if (!granted) {
+                            toast.info('Abra as configurações do navegador → Notificações → Permitir para este site.');
+                          }
+                        });
+                      }}
+                      className="w-full bg-destructive/10 hover:bg-destructive/20 text-destructive py-1.5 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1"
+                    >
+                      <Bell size={12} /> Tentar ativar novamente
+                    </button>
                   </div>
                 ) : (
                   <button

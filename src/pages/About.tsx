@@ -1,8 +1,15 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, Users, Target, Sparkles, ArrowLeft, MessageCircle, Shield, Lightbulb } from 'lucide-react';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 
 const About = () => {
+  useEffect(() => {
+    document.title = 'Sobre Nós - Acolher | Centro de Cuidados';
+    const meta = document.querySelector('meta[name="description"]');
+    if (meta) meta.setAttribute('content', 'Conheça o Centro de Cuidados Acolher. Somos um refúgio para mães de crianças neurodivergentes com suporte emocional, técnico e humano.');
+    return () => { document.title = 'Acolher - Cuidando de Quem Cuida'; };
+  }, []);
   const heroSection = useIntersectionObserver();
   const missionSection = useIntersectionObserver();
   const teamSection = useIntersectionObserver();
