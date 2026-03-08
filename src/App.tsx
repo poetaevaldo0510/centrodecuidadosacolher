@@ -14,6 +14,9 @@ import Services from "./pages/Services";
 import Product from "./pages/Product";
 import NotFound from "./pages/NotFound";
 import FloatingWhatsApp from "./components/FloatingWhatsApp";
+import CookieConsent from "./components/CookieConsent";
+import TermosDeUso from "./pages/TermosDeUso";
+import PoliticaPrivacidade from "./pages/PoliticaPrivacidade";
 
 const queryClient = new QueryClient();
 
