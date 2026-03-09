@@ -544,9 +544,8 @@ const Landing = () => {
           </div>
         </div>
       </section>
-          </div>
-        </div>
-      </section>
+
+
 
       {/* FAQ Section */}
       <section id="faq" className="py-20 bg-muted/30">
