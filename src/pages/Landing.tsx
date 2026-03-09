@@ -461,10 +461,10 @@ const Landing = () => {
           <div className={`max-w-4xl mx-auto transition-all duration-1000 delay-200 ${
             videoSection.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
           }`}>
-            <div className="relative bg-slate-900 rounded-3xl overflow-hidden shadow-2xl">
+          <div className="relative bg-foreground rounded-3xl overflow-hidden shadow-2xl">
               {/* Video Placeholder */}
-              <div className="aspect-video bg-gradient-to-br from-indigo-900 to-purple-900 flex items-center justify-center relative group">
-                <div className="absolute inset-0 bg-black/20"></div>
+              <div className="aspect-video bg-gradient-hero flex items-center justify-center relative group">
+                <div className="absolute inset-0 bg-foreground/20"></div>
                 <button 
                   onClick={() => setIsPlaying(!isPlaying)}
                   className="relative z-10 w-20 h-20 bg-white/90 rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-xl"
