@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { Heart, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import Logo from '@/components/Logo';
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
