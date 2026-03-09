@@ -218,7 +218,7 @@ const Auth = () => {
           Entrar com Google
         </Button>
 
-        <div className="text-center mt-4">
+        <div className="text-center mt-4 space-y-3">
           <button
             onClick={() => setIsLogin(!isLogin)}
             className="text-sm text-primary hover:underline"
@@ -227,6 +227,12 @@ const Auth = () => {
               ? 'Não tem uma conta? Cadastre-se'
               : 'Já tem uma conta? Entre'}
           </button>
+          <p className="text-xs text-muted-foreground">
+            Ao continuar, você concorda com nossos{' '}
+            <a href="/termos" target="_blank" className="text-primary hover:underline">Termos de Uso</a>{' '}
+            e{' '}
+            <a href="/privacidade" target="_blank" className="text-primary hover:underline">Política de Privacidade</a>.
+          </p>
         </div>
       </Card>
     </div>
