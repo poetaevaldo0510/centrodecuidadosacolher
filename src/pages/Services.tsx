@@ -230,10 +230,7 @@ const Services = () => {
           <div className="flex justify-between h-20 items-center">
             <Link to="/" className="flex items-center gap-2 group">
               <ArrowLeft size={20} className="text-muted-foreground group-hover:text-primary transition" />
-              <div className="bg-primary p-2 rounded-xl text-primary-foreground">
-                <Heart size={24} fill="currentColor" />
-              </div>
-              <span className="text-2xl font-bold text-primary tracking-tight">Acolher</span>
+              <Logo variant="full" size="md" />
             </Link>
             
             <a 

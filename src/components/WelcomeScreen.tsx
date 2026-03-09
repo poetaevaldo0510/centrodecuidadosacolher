@@ -1,4 +1,4 @@
-import { Heart } from 'lucide-react';
+import Logo from '@/components/Logo';
 
 interface WelcomeScreenProps {
   show: boolean;
@@ -12,7 +12,7 @@ const WelcomeScreen = ({ show }: WelcomeScreenProps) => {
       }`}
     >
       <div className="w-full max-w-sm p-8 flex flex-col items-center animate-zoom-in">
-        <Heart size={80} className="animate-bounce-soft mb-6 text-accent fill-accent" />
+        <Logo variant="icon" size="xl" className="mb-6 animate-bounce-soft drop-shadow-2xl brightness-0 invert" />
         <h1 className="text-5xl font-bold mb-3 tracking-tight">Acolher</h1>
         <p className="text-primary-foreground/80 text-lg text-center font-medium">
           Sua memória, seu apoio, sua renda.

@@ -275,11 +275,8 @@ const About = () => {
       {/* Footer */}
       <footer className="py-8 bg-card border-t border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <Link to="/" className="inline-flex items-center gap-2 mb-4">
-            <div className="bg-primary p-2 rounded-xl text-primary-foreground">
-              <Heart size={20} fill="currentColor" />
-            </div>
-            <span className="text-xl font-bold text-primary">Acolher</span>
+          <Link to="/" className="inline-block mb-4">
+            <Logo variant="full" size="sm" />
           </Link>
           <p className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} Centro de Cuidados Acolher. Todos os direitos reservados.
