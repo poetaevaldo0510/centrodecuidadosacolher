@@ -39,8 +39,25 @@ import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 const Landing = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [email, setEmail] = useState("");
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
+  const [activeScreenshot, setActiveScreenshot] = useState(0);
+
+  const screenshots = [
+    {
+      image: screenshotHome,
+      title: 'Dashboard Inteligente',
+      description: 'Registre atividades diárias com um clique e acompanhe padrões de saúde do seu filho.',
+    },
+    {
+      image: screenshotCommunity,
+      title: 'Comunidade de Apoio',
+      description: 'Conecte-se com mães que vivem a mesma jornada. Compartilhe, aprenda e apoie.',
+    },
+    {
+      image: screenshotMarket,
+      title: 'Marketplace Inclusivo',
+      description: 'Venda materiais adaptados, consultorias e transforme sua experiência em renda.',
+    },
+  ];
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
