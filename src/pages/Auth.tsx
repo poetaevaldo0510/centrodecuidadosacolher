@@ -127,7 +127,7 @@ const Auth = () => {
       <Card className="w-full max-w-md p-8 space-y-6">
         <div className="text-center space-y-2">
           <div className="flex justify-center mb-4">
-            <Heart className="w-12 h-12 text-primary fill-primary" />
+            <Logo variant="full" size="lg" />
           </div>
           <h1 className="text-3xl font-bold text-foreground">Acolher</h1>
           <p className="text-muted-foreground">
