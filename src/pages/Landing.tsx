@@ -60,11 +60,8 @@ const Landing = () => {
       <nav className="fixed w-full z-50 bg-card/90 backdrop-blur-md border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20 items-center">
-            <div className="flex items-center gap-2">
-              <div className="bg-primary p-2 rounded-xl text-primary-foreground">
-                <Heart size={24} fill="currentColor" />
-              </div>
-              <span className="text-2xl font-bold text-primary tracking-tight">Acolher</span>
+            <div className="flex items-center gap-1">
+              <Logo variant="full" size="md" />
             </div>
 
             {/* Desktop Menu */}
