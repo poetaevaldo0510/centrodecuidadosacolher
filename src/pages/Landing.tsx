@@ -752,9 +752,8 @@ const Landing = () => {
       <footer className="bg-foreground text-muted-foreground py-12 border-t border-border">
         <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-2">
-            <div className="flex items-center gap-2 text-background mb-4">
-              <Heart size={20} fill="currentColor" className="text-primary" />
-              <span className="font-bold text-xl">Acolher</span>
+            <div className="mb-4">
+              <Logo variant="full" size="sm" className="brightness-0 invert" />
             </div>
             <p className="text-sm mb-6 max-w-xs">
               A plataforma de empoderamento para a maternidade atípica. Saúde, renda e comunidade.
