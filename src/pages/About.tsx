@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, Users, Target, Sparkles, ArrowLeft, MessageCircle, Shield, Lightbulb } from 'lucide-react';
+import Logo from '@/components/Logo';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 
 const About = () => {
@@ -50,10 +51,7 @@ const About = () => {
           <div className="flex justify-between h-20 items-center">
             <Link to="/" className="flex items-center gap-2 group">
               <ArrowLeft size={20} className="text-muted-foreground group-hover:text-primary transition" />
-              <div className="bg-primary p-2 rounded-xl text-primary-foreground">
-                <Heart size={24} fill="currentColor" />
-              </div>
-              <span className="text-2xl font-bold text-primary tracking-tight">Acolher</span>
+              <Logo variant="full" size="md" />
             </Link>
             
             <a 
@@ -277,11 +275,8 @@ const About = () => {
       {/* Footer */}
       <footer className="py-8 bg-card border-t border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <Link to="/" className="inline-flex items-center gap-2 mb-4">
-            <div className="bg-primary p-2 rounded-xl text-primary-foreground">
-              <Heart size={20} fill="currentColor" />
-            </div>
-            <span className="text-xl font-bold text-primary">Acolher</span>
+          <Link to="/" className="inline-block mb-4">
+            <Logo variant="full" size="sm" />
           </Link>
           <p className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} Centro de Cuidados Acolher. Todos os direitos reservados.

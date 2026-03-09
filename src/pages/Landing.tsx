@@ -23,6 +23,7 @@ import {
   Handshake,
   ExternalLink,
 } from 'lucide-react';
+import Logo from '@/components/Logo';
 import {
   Accordion,
   AccordionContent,
@@ -59,11 +60,8 @@ const Landing = () => {
       <nav className="fixed w-full z-50 bg-card/90 backdrop-blur-md border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20 items-center">
-            <div className="flex items-center gap-2">
-              <div className="bg-primary p-2 rounded-xl text-primary-foreground">
-                <Heart size={24} fill="currentColor" />
-              </div>
-              <span className="text-2xl font-bold text-primary tracking-tight">Acolher</span>
+            <div className="flex items-center gap-1">
+              <Logo variant="full" size="md" />
             </div>
 
             {/* Desktop Menu */}
@@ -463,10 +461,10 @@ const Landing = () => {
           <div className={`max-w-4xl mx-auto transition-all duration-1000 delay-200 ${
             videoSection.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
           }`}>
-            <div className="relative bg-slate-900 rounded-3xl overflow-hidden shadow-2xl">
+          <div className="relative bg-foreground rounded-3xl overflow-hidden shadow-2xl">
               {/* Video Placeholder */}
-              <div className="aspect-video bg-gradient-to-br from-indigo-900 to-purple-900 flex items-center justify-center relative group">
-                <div className="absolute inset-0 bg-black/20"></div>
+              <div className="aspect-video bg-gradient-hero flex items-center justify-center relative group">
+                <div className="absolute inset-0 bg-foreground/20"></div>
                 <button 
                   onClick={() => setIsPlaying(!isPlaying)}
                   className="relative z-10 w-20 h-20 bg-white/90 rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-xl"
@@ -754,9 +752,8 @@ const Landing = () => {
       <footer className="bg-foreground text-muted-foreground py-12 border-t border-border">
         <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-2">
-            <div className="flex items-center gap-2 text-background mb-4">
-              <Heart size={20} fill="currentColor" className="text-primary" />
-              <span className="font-bold text-xl">Acolher</span>
+            <div className="mb-4">
+              <Logo variant="full" size="sm" className="brightness-0 invert" />
             </div>
             <p className="text-sm mb-6 max-w-xs">
               A plataforma de empoderamento para a maternidade atípica. Saúde, renda e comunidade.
@@ -820,7 +817,7 @@ const Landing = () => {
           </div>
         </div>
         <div className="max-w-7xl mx-auto px-4 mt-12 pt-8 border-t border-background/10 text-center text-xs space-y-2">
-          <p>© 2025 Acolher Tecnologia Ltda. Todos os direitos reservados. Feito com ❤️ no Brasil.</p>
+          <p>© {new Date().getFullYear()} Acolher Tecnologia Ltda. Todos os direitos reservados. Feito com ❤️ no Brasil.</p>
           <Link
             to="/admin"
             className="inline-block text-muted-foreground/50 hover:text-primary/70 transition-colors text-[10px] tracking-wider"
