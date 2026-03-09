@@ -802,19 +802,19 @@ const Landing = () => {
             <h4 className="text-background font-bold mb-4">Legal</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="#" className="hover:text-background">
+                <Link to="/privacidade" className="hover:text-background">
                   Política de Privacidade
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-background">
+                <Link to="/termos" className="hover:text-background">
                   Termos de Uso
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-background">
+                <Link to="/privacidade" className="hover:text-background">
                   LGPD
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
