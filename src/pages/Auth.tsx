@@ -129,11 +129,8 @@ const Auth = () => {
           <div className="flex justify-center mb-4">
             <Logo variant="full" size="lg" />
           </div>
-          <p className="text-muted-foreground text-lg mt-2">
-          </p>
           <p className="text-muted-foreground">
             {isLogin ? 'Entre na sua conta' : 'Crie sua conta'}
-          </p>
           </p>
         </div>
 
