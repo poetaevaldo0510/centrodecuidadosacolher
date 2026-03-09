@@ -23,6 +23,7 @@ import {
   Handshake,
   ExternalLink,
 } from 'lucide-react';
+import Logo from '@/components/Logo';
 import {
   Accordion,
   AccordionContent,
