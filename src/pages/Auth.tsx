@@ -191,10 +191,10 @@ const Auth = () => {
             </div>
           )}
 
-          <Button
+          <Button 
             type="submit" 
             className="w-full"
-            disabled={loading}
+            disabled={loading || (!isLogin && !acceptedTerms)}
           >
             {loading ? (
               <>
