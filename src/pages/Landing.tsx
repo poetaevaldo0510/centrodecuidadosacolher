@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import screenshotHome from '@/assets/screenshot-home.png';
+import screenshotCommunity from '@/assets/screenshot-community.png';
+import screenshotMarket from '@/assets/screenshot-market.png';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
