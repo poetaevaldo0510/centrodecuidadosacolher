@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { Heart, Loader2 } from 'lucide-react';
 
@@ -16,6 +17,7 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -56,6 +58,12 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!acceptedTerms) {
+      toast.error('Você precisa aceitar os Termos de Uso para criar uma conta');
+      return;
+    }
+    
     setLoading(true);
 
     try {
@@ -166,10 +174,27 @@ const Auth = () => {
             />
           </div>
 
+          {!isLogin && (
+            <div className="flex items-start space-x-2">
+              <Checkbox
+                id="terms"
+                checked={acceptedTerms}
+                onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
+                className="mt-0.5"
+              />
+              <Label htmlFor="terms" className="text-sm font-normal leading-relaxed cursor-pointer">
+                Li e aceito os{' '}
+                <a href="/termos" target="_blank" className="text-primary hover:underline">Termos de Uso</a>{' '}
+                e a{' '}
+                <a href="/privacidade" target="_blank" className="text-primary hover:underline">Política de Privacidade</a>
+              </Label>
+            </div>
+          )}
+
           <Button 
             type="submit" 
             className="w-full"
-            disabled={loading}
+            disabled={loading || (!isLogin && !acceptedTerms)}
           >
             {loading ? (
               <>
