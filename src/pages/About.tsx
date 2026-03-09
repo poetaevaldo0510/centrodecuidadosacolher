@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, Target, Sparkles, ArrowLeft, MessageCircle, Shield, Lightbulb } from 'lucide-react';
+import { Heart, Users, Target, Sparkles, ArrowLeft, MessageCircle, Shield, Lightbulb } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 
