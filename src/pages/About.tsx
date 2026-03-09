@@ -51,7 +51,7 @@ const About = () => {
           <div className="flex justify-between h-20 items-center">
             <Link to="/" className="flex items-center gap-2 group">
               <ArrowLeft size={20} className="text-muted-foreground group-hover:text-primary transition" />
-              <Logo variant="full" size="md" />
+              <Logo variant="full" size="md" className="dark:brightness-0 dark:invert" />
             </Link>
             
             <a 

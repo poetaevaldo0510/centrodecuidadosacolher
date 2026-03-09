@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import screenshotHome from '@/assets/screenshot-home.png';
+import screenshotCommunity from '@/assets/screenshot-community.png';
+import screenshotMarket from '@/assets/screenshot-market.png';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,11 +14,6 @@ import {
   Menu,
   X,
   Smartphone,
-  Mail,
-  Play,
-  Pause,
-  Volume2,
-  VolumeX,
   ChevronDown,
   Shield,
   MessageCircle,
@@ -36,8 +34,25 @@ import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 const Landing = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [email, setEmail] = useState("");
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
+  const [activeScreenshot, setActiveScreenshot] = useState(0);
+
+  const screenshots = [
+    {
+      image: screenshotHome,
+      title: 'Dashboard Inteligente',
+      description: 'Registre atividades diárias com um clique e acompanhe padrões de saúde do seu filho.',
+    },
+    {
+      image: screenshotCommunity,
+      title: 'Comunidade de Apoio',
+      description: 'Conecte-se com mães que vivem a mesma jornada. Compartilhe, aprenda e apoie.',
+    },
+    {
+      image: screenshotMarket,
+      title: 'Marketplace Inclusivo',
+      description: 'Venda materiais adaptados, consultorias e transforme sua experiência em renda.',
+    },
+  ];
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,7 +76,7 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20 items-center">
             <div className="flex items-center gap-1">
-              <Logo variant="full" size="md" />
+              <Logo variant="full" size="md" className="dark:brightness-0 dark:invert" />
             </div>
 
             {/* Desktop Menu */}
@@ -445,12 +460,12 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Video Demo Section */}
-      <section id="video" className="py-20 bg-background">
+      {/* App Screenshots Gallery */}
+      <section id="galeria" className="py-20 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div 
             ref={videoSection.ref}
-            className={`text-center max-w-3xl mx-auto mb-12 transition-all duration-1000 ${
+            className={`text-center max-w-3xl mx-auto mb-16 transition-all duration-1000 ${
               videoSection.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`}
           >
@@ -458,59 +473,74 @@ const Landing = () => {
             <p className="text-muted-foreground">Descubra como o app funciona na prática e como pode transformar sua rotina.</p>
           </div>
 
-          <div className={`max-w-4xl mx-auto transition-all duration-1000 delay-200 ${
+          <div className={`transition-all duration-1000 delay-200 ${
             videoSection.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
           }`}>
-          <div className="relative bg-foreground rounded-3xl overflow-hidden shadow-2xl">
-              {/* Video Placeholder */}
-              <div className="aspect-video bg-gradient-hero flex items-center justify-center relative group">
-                <div className="absolute inset-0 bg-foreground/20"></div>
-                <button 
-                  onClick={() => setIsPlaying(!isPlaying)}
-                  className="relative z-10 w-20 h-20 bg-white/90 rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-xl"
-                >
-                  {isPlaying ? <Pause className="text-primary" size={32} /> : <Play className="text-primary ml-1" size={32} />}
-                </button>
-                
-                {/* Video Controls */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="flex items-center justify-between text-white">
-                    <button onClick={() => setIsPlaying(!isPlaying)} className="hover:text-primary transition">
-                      {isPlaying ? <Pause size={20} /> : <Play size={20} />}
-                    </button>
-                    <div className="flex-1 mx-4 h-1 bg-white/30 rounded-full overflow-hidden">
-                      <div className="h-full bg-primary w-1/3"></div>
-                    </div>
-                    <button onClick={() => setIsMuted(!isMuted)} className="hover:text-primary transition">
-                      {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-                    </button>
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              {/* Screenshot Display */}
+              <div className="flex justify-center">
+                <div className="relative">
+                  <div className="absolute -inset-4 bg-gradient-hero rounded-[3rem] blur-2xl opacity-20"></div>
+                  <div className="relative bg-card rounded-[2.5rem] border-[6px] border-foreground/10 shadow-2xl overflow-hidden w-[280px] h-[560px]">
+                    <img 
+                      src={screenshots[activeScreenshot].image} 
+                      alt={screenshots[activeScreenshot].title}
+                      className="w-full h-full object-cover transition-all duration-500"
+                    />
                   </div>
                 </div>
               </div>
 
-              {/* Video Transcript */}
-              <div className="bg-muted/50 p-6 border-t border-border">
-                <details className="group">
-                  <summary className="font-bold text-foreground cursor-pointer list-none flex items-center justify-between">
-                    <span className="flex items-center gap-2">
-                      <Shield size={16} className="text-primary" />
-                      Transcrição (Acessibilidade)
-                    </span>
-                    <ChevronDown className="text-muted-foreground group-open:rotate-180 transition-transform" size={20} />
-                  </summary>
-                  <div className="mt-4 text-sm text-muted-foreground space-y-2 leading-relaxed">
-                    <p><strong>00:00 - 00:15:</strong> Olá, sou Ana, mãe do Lucas. Vou mostrar como o Acolher transformou nossa rotina.</p>
-                    <p><strong>00:15 - 00:35:</strong> Todo dia, registro as atividades do Lucas com um clique: medicação, humor, terapias. Leva segundos.</p>
-                    <p><strong>00:35 - 00:55:</strong> A IA detectou que ele fica agitado após o remédio da manhã. Mostrei isso ao médico e ajustamos a dose.</p>
-                    <p><strong>00:55 - 01:15:</strong> Também conectei com outras mães na comunidade. Encontrei a Carla, que tem um filho da mesma idade. Nos apoiamos diariamente.</p>
-                    <p><strong>01:15 - 01:30:</strong> E ainda vendo meus materiais adaptados no marketplace. Já ganhei R$ 450 esse mês!</p>
-                  </div>
-                </details>
+              {/* Feature Tabs */}
+              <div className="space-y-4">
+                {screenshots.map((screen, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setActiveScreenshot(index)}
+                    className={`w-full text-left p-6 rounded-2xl border transition-all duration-300 ${
+                      activeScreenshot === index
+                        ? 'bg-primary/5 border-primary shadow-lg scale-[1.02]'
+                        : 'bg-card border-border hover:border-primary/30 hover:shadow-md'
+                    }`}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
+                        activeScreenshot === index
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted text-muted-foreground'
+                      }`}>
+                        <span className="text-sm font-bold">{index + 1}</span>
+                      </div>
+                      <div>
+                        <h3 className={`font-bold text-lg mb-1 transition-colors ${
+                          activeScreenshot === index ? 'text-primary' : 'text-foreground'
+                        }`}>
+                          {screen.title}
+                        </h3>
+                        <p className="text-muted-foreground text-sm leading-relaxed">
+                          {screen.description}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+
+                <div className="pt-4">
+                  <Link
+                    to="/auth"
+                    className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-full font-bold text-lg shadow-xl hover:-translate-y-1 transition"
+                  >
+                    <Smartphone size={20} />
+                    Experimentar Grátis
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
+
+
 
       {/* FAQ Section */}
       <section id="faq" className="py-20 bg-muted/30">
