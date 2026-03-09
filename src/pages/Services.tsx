@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { 
-  Heart, 
   ArrowLeft, 
   MessageCircle, 
   Eye, 
@@ -18,8 +17,10 @@ import {
   Send,
   Calendar,
   ChevronDown,
-  HelpCircle
+  HelpCircle,
+  Heart
 } from 'lucide-react';
+import Logo from '@/components/Logo';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
